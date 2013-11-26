@@ -1,7 +1,6 @@
 package se.kth.oberg.matn.merrills;
 
 import android.app.Activity;
-import android.app.ActionBar;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
@@ -58,6 +57,10 @@ public class MainActivity extends Activity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                 Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+            assert rootView != null;
+
+            TextView helloView = (TextView) rootView.findViewById(R.id.hello_view);
+            helloView.setText("YES THIS IS DOG");
             return rootView;
         }
     }
