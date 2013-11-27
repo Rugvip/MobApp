@@ -16,14 +16,18 @@ import android.view.View;
 public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
     private Thread mainThread;
     Piece piece;
+    Board board;
 
     public MainSurfaceView(Context context) {
         super(context);
 
         getHolder().addCallback(this);
         Drawable d = context.getResources().getDrawable(android.R.drawable.ic_menu_share);
+        Drawable b = context.getResources().getDrawable(R.drawable.board);
         piece = new Piece(d, 100, 100, 0xFFFF0000);
-        mainThread = new MainThread(getHolder(), piece);
+        board = new Board(b, this.getWidth(), this.getHeight(), 500);
+        mainThread = new MainThread(getHolder(), board);
+        //mainThread = new MainThread(getHolder(), piece);
 
         setOnTouchListener(this);
     }
