@@ -3,8 +3,6 @@ package se.kth.oberg.matn.merrills;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -24,7 +22,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         getHolder().addCallback(this);
         Drawable d = context.getResources().getDrawable(android.R.drawable.ic_menu_share);
-        piece = new Piece(d, 100, 100);
+        piece = new Piece(d, 100, 100, 0xFFFF0000);
         mainThread = new MainThread(getHolder(), piece);
 
         setOnTouchListener(this);
