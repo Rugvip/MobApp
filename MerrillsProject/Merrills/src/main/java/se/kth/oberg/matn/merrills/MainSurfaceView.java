@@ -29,7 +29,12 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         mainThread = new MainThread(getHolder(), board);
         //mainThread = new MainThread(getHolder(), piece);
 
-        setOnTouchListener(this);
+        setOnTouchListener(new PiecePokeListener(720) {
+            @Override
+            public void onPiecePoke(int id, float pieceX, float pieceY) {
+                Log.e("poke", "piece: " + id + " x: " + pieceX + " y: " + pieceY);
+            }
+        });
     }
 
     @Override
