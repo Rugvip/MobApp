@@ -25,7 +25,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         Drawable d = context.getResources().getDrawable(android.R.drawable.ic_menu_share);
         Drawable b = context.getResources().getDrawable(R.drawable.board);
         piece = new Piece(d, 100, 100, 0xFFFF0000);
-        board = new Board(b, this.getWidth(), this.getHeight(), 500);
+        board = new Board(b);
         mainThread = new MainThread(getHolder(), board);
         //mainThread = new MainThread(getHolder(), piece);
 
