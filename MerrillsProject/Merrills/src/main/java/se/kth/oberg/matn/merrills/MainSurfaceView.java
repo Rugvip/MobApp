@@ -1,26 +1,33 @@
 package se.kth.oberg.matn.merrills;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 /**
  * Created by Rugvip on 2013-11-27.
  */
-public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
     private Thread mainThread;
-    private Drawable darw;
+    Piece piece;
 
     public MainSurfaceView(Context context) {
         super(context);
 
         getHolder().addCallback(this);
-        mainThread = new MainThread(getHolder());
-        // darw = context.getResources().getDrawable(android.R.drawable.ic_menu_share);
+        Drawable d = context.getResources().getDrawable(android.R.drawable.ic_menu_share);
+        piece = new Piece(d, 100, 100);
+        mainThread = new MainThread(getHolder(), piece);
+
+        setOnTouchListener(this);
     }
 
     @Override
@@ -37,5 +44,25 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         Log.e("Holder.Callback", "surfaceDestroyed");
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        if (motionEvent.getActionMasked() != MotionEvent.ACTION_DOWN) {
+            return false;
+        }
+        ObjectAnimator animMiddleX = ObjectAnimator.ofInt(piece, "x", 360);
+        ObjectAnimator animMiddleY = ObjectAnimator.ofInt(piece, "y", 640);
+        ObjectAnimator animTouchX = ObjectAnimator.ofInt(piece, "x", (int) motionEvent.getX());
+        ObjectAnimator animTouchY = ObjectAnimator.ofInt(piece, "y", (int) motionEvent.getY());
+
+        AnimatorSet set = new AnimatorSet();
+        set.play(animMiddleX).with(animMiddleY);
+        set.play(animMiddleY).before(animTouchX);
+        set.play(animTouchX).with(animTouchY);
+        set.setDuration(1000);
+        set.start();
+
+        return false;
     }
 }
