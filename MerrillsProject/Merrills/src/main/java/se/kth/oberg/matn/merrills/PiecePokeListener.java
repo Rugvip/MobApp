@@ -8,22 +8,7 @@ import android.view.View;
  * Created by Rugvip on 2013-11-27.
  */
 public abstract class PiecePokeListener implements View.OnTouchListener {
-    private float boardSize;
-    private float boardSize2;
-    private float boardSize7;
-
-    public PiecePokeListener(float boardSize) {
-        this.boardSize = boardSize;
-        boardSize2 = boardSize / 2.0f;
-        boardSize7 = boardSize / 7.0f;
-    }
-
-    public void setBoardSize(float boardSize) {
-        this.boardSize = boardSize;
-        boardSize2 = boardSize / 2.0f;
-        boardSize7 = boardSize / 7.0f;
-    }
-
+    private Dimentionalizer.Dimentionalization dimentionalization = new Dimentionalizer.Dimentionalization();
 
     public abstract void onPiecePoke(int id, float pieceX, float pieceY);
 
@@ -43,13 +28,16 @@ public abstract class PiecePokeListener implements View.OnTouchListener {
             return false;
         }
 
+        Dimentionalizer.dimentionalize(view.getWidth(), view.getHeight(), dimentionalization);
+
+        float size7 = dimentionalization.getSize() / 7.0f;
         /* convert to board coordinates [0,7] */
-        float x = (motionEvent.getX() - (view.getWidth() / 2.0f - boardSize2)) / boardSize7;
-        float y = (motionEvent.getY() - (view.getHeight() / 2.0f - boardSize2)) /  boardSize7;
+        float x = (motionEvent.getX() - dimentionalization.getOffsetX()) / size7;
+        float y = (motionEvent.getY() - dimentionalization.getOffsetY()) /  size7;
 
         Log.d("Touch", "down at (" + x + ", " + y + ")");
 
-        if (x < 0 || x > boardSize || y < 0 || y > boardSize) {
+        if (x < 0 || x >= 7 || y < 0 || y >= 7) {
             return false; /* outside board */
         }
 
@@ -59,7 +47,7 @@ public abstract class PiecePokeListener implements View.OnTouchListener {
         int id = lookup[yi][xi];
 
         if (id < 0) {
-            return false; /* invalid rect */
+            return false; /* empty rect */
         }
 
         float xd = x - (xi + 0.5f);
@@ -69,7 +57,7 @@ public abstract class PiecePokeListener implements View.OnTouchListener {
             return false; /* not inside touch circle */
         }
 
-        onPiecePoke(id, (xi + 0.5f) * boardSize7, (yi + 0.5f) * boardSize7);
+        onPiecePoke(id, (xi + 0.5f) * size7, (yi + 0.5f) * size7);
 
         return false;
     }
