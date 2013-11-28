@@ -1,13 +1,15 @@
 package se.kth.oberg.matn.merrills;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 
 public class Board {
     private Piece[] piece = new Piece[24];
     private GameRules rules;
-    private Drawable draw;
+    private Drawable backgroundDrawable;
+    private Drawable pieceDrawable;
     private Dimensions dimensions;
     private int size;
     private static Paint boardPaint = new Paint();
@@ -16,15 +18,16 @@ public class Board {
         boardPaint.setStyle(Paint.Style.STROKE);
     }
 
-    public Board(Drawable draw) {
-        this.draw = draw;
+    public Board(Drawable backgroundDrawable, Drawable pieceDrawable) {
+        this.backgroundDrawable = backgroundDrawable;
+        this.pieceDrawable = pieceDrawable;
     }
 
     public void draw(Canvas canvas) {
         dimensions = Dimensions.calculate(canvas.getWidth(), canvas.getHeight(), dimensions);
         canvas.translate(dimensions.getOffsetX(), dimensions.getOffsetY());
-        draw.setBounds(0, 0, dimensions.getSize(), dimensions.getSize());
-        draw.draw(canvas);
+        backgroundDrawable.setBounds(0, 0, dimensions.getSize(), dimensions.getSize());
+        backgroundDrawable.draw(canvas);
 
         float size = dimensions.getSize();
         float seven = size / 7.0f;
@@ -43,6 +46,14 @@ public class Board {
         Markers.BLACK.draw(canvas, ~0, seven);
     }
 
+    public void tryPlace(int to) throws IllegalMoveException {
+        if(!rules.isFreeSpot(to)){
+            throw new IllegalMoveException("illegal placement!");
+        }else{
+            piece[to] = new Piece(pieceDrawable, Color.BLUE);
+        }
+    }
+    
     public void tryMove(int to, int from) {
         //Check if legal, Move in arrayList, animation in piece.move w/e
 //        if (rules.legalMove(to, from, piece[to].getColor())) {

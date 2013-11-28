@@ -13,7 +13,7 @@ import android.view.View;
 /**
  * Created by Rugvip on 2013-11-27.
  */
-public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
+public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callback{
     private Thread mainThread;
     Piece piece;
     Board board;
@@ -33,6 +33,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             @Override
             public void onPiecePoke(int id, float pieceX, float pieceY) {
                 Log.e("poke", "piece: " + id + " x: " + pieceX + " y: " + pieceY);
+                board.tryPlace(id);
             }
         });
     }
@@ -53,23 +54,4 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         Log.e("Holder.Callback", "surfaceDestroyed");
     }
 
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        if (motionEvent.getActionMasked() != MotionEvent.ACTION_DOWN) {
-            return false;
-        }
-        ObjectAnimator animMiddleX = ObjectAnimator.ofInt(piece, "x", 360);
-        ObjectAnimator animMiddleY = ObjectAnimator.ofInt(piece, "y", 640);
-        ObjectAnimator animTouchX = ObjectAnimator.ofInt(piece, "x", (int) motionEvent.getX());
-        ObjectAnimator animTouchY = ObjectAnimator.ofInt(piece, "y", (int) motionEvent.getY());
-
-        AnimatorSet set = new AnimatorSet();
-        set.play(animMiddleX).with(animMiddleY);
-        set.play(animMiddleY).before(animTouchX);
-        set.play(animTouchX).with(animTouchY);
-        set.setDuration(1000);
-        set.start();
-
-        return false;
-    }
 }

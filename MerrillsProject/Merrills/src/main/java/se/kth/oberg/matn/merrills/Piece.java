@@ -14,15 +14,20 @@ public class Piece {
     private int height;
     private int color;
 
-    public Piece(Drawable drawable, int width, int height, int color) {
+    public Piece(Drawable drawable, int color) {
         this.drawable = drawable;
-        this.width = width;
-        this.height = height;
         this.color = color;
+        //TODO this
+        x = 0;
+        y = 0;
     }
 
-    public void draw(Canvas canvas) {
-        drawable.setBounds(x - width / 2, y - height / 2, x + width / 2, y + height / 2);
+    public void draw(Canvas canvas, float seven) {
+        drawable.setBounds(
+                x - (int) (seven / 3.0f),
+                y - (int) (seven / 3.0f),
+                x + (int) (seven / 3.0f),
+                y + (int) (seven / 3.0f));
         drawable.draw(canvas);
     }
 
