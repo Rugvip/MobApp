@@ -86,5 +86,6 @@ public class BoardView {
 
     private void removePiece(int from){
         piece[from].animateRemove();
+        piece[from] = null;
     }
 }
