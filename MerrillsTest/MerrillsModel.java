@@ -14,8 +14,13 @@ public class MerrillsModel {
         "| T----Q----N |\n" +
         "|      |      |\n" +
         "U------R------O";
-    public int black;
-    public int white;
+
+    public static final int TRUE_PLAYER = 1;
+    public static final int FALSE_PLAYER = 0;
+    public static final int NO_PLAYER = -1;
+
+    public int truePlayer;
+    public int falsePlayer;
 
     private static int[] availableLookup = new int[] {
         0b001000000000000000001000,
@@ -44,25 +49,6 @@ public class MerrillsModel {
         0b010100000000000000000100
         //011000011000011000011000 << 1
         //110000110000110000110000 >> 1
-    };
-
-    private static int[] rowLookup = new int[] {
-        0b000000000000000001001001,
-        0b000000000000000010010010,
-        0b000000000000000100100100,
-        0b000000000001001001000000,
-        0b000000000010010010000000,
-        0b000000000100100100000000,
-        0b000001001001000000000000,
-        0b000010010010000000000000,
-        0b000100100100000000000000,
-        0b001001000000000000000001,
-        0b010010000000000000000010,
-        0b100100000000000000000100,
-        0b000000000000000000111000,
-        0b000000000000111000000000,
-        0b000000111000000000000000,
-        0b111000000000000000000000
     };
 
     public static int getAvailableForPos(int index) {
@@ -99,25 +85,33 @@ public class MerrillsModel {
         return false;
     }
 
-
-    public boolean isWhiteMillMaker(int index) {
-        return isMillMaker(index, white);
+    public boolean isMillMaker(boolean player, int index) {
+        return isMillMaker(index, player ? truePlayer : falsePlayer) && (getAvailableMoves(player) & (1 << index)) != 0;
     }
 
     private int getAvailableMoves(int positions) {
         int ret = getAvailableForMask(positions);
-        return ret & ~(white | black);
+        return ret & ~(truePlayer | falsePlayer);
     }
 
-    public int getWhiteAvailableMoves() {
-        return getAvailableMoves(white);
+    public int getAvailableMoves(boolean player) {
+        return getAvailableMoves(player ? truePlayer : falsePlayer);
     }
 
-    public int getBlackAvailableMoves() {
-        return getAvailableMoves(black);
+    public boolean remove(boolean player, int index) {
+        boolean ret = false;
+        if (player) {
+            ret = (truePlayer & (1 << index)) != 0;
+            truePlayer &= ~(1 << index);
+        } else {
+            ret = (falsePlayer & (1 << index)) != 0;
+            falsePlayer &= ~(1 << index);
+        }
+        return ret;
     }
 
-    private static boolean hasLost(int positions) {
+    public boolean hasLost(boolean player) {
+        int positions = player ? truePlayer : falsePlayer;
         positions = positions & (positions - 1);
         return (positions & (positions - 1)) == 0;
     }
@@ -145,14 +139,14 @@ public class MerrillsModel {
 
     public char getChar(int pos) {
         int mask = 1 << pos;
-        if ((black & white & mask) != 0) {
+        if ((truePlayer & falsePlayer & mask) != 0) {
             return '&';
         }
-        if ((black & mask) != 0) {
-            return 'b';
+        if ((truePlayer & mask) != 0) {
+            return 't';
         }
-        if ((white & mask) != 0) {
-            return 'w';
+        if ((falsePlayer & mask) != 0) {
+            return 'f';
         }
         return ' ';
     }
@@ -166,19 +160,4 @@ public class MerrillsModel {
         }
         return sb.toString();
     }
-/*
-0------3------6
-|\     |     /|
-| 1----4----7 |
-| |\   |   /| |
-| | 2--5--8 | |
-| | |     | | |
-O O O     b a 9
-| | |     | | |
-| | O-- --O | |
-| |/   |   \| |
-| O----O----d |
-|/     |     \|
-O------O------c
-*/
 }
