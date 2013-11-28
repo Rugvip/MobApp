@@ -12,7 +12,7 @@ public class MainThread extends Thread {
         this.board = board;
     }
 
-    @Overridek
+    @Override
     public void run() {
         while (true) {
             Canvas canvas = holder.lockCanvas();

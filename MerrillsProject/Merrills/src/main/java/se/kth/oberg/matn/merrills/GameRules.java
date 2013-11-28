@@ -24,7 +24,7 @@ public class GameRules {
     public int truePlayer;
     public int falsePlayer;
 
-    private static int[] availableLookup = new int[] {
+    private static int[] availableLookup = new int[]{
             0b001000000000000000001000,
             0b010000000000000000010000,
             0b100000000000000000100000,
@@ -126,16 +126,17 @@ public class GameRules {
         int pos;
         StringBuilder sb = new StringBuilder(template);
         for (char c = 'A'; c < 'Y'; c++) {
-            for (pos = 0; sb.charAt(pos) != c; pos++);
+            for (pos = 0; sb.charAt(pos) != c; pos++) ;
             sb.setCharAt(pos, (positions & (1 << (c - 'A'))) == 0 ? ' ' : '@');
         }
         return sb.toString();
     }
+
     public static String drawPositions(int pos1, int pos2) {
         int pos;
         StringBuilder sb = new StringBuilder(template);
         for (char c = 'A'; c < 'Y'; c++) {
-            for (pos = 0; sb.charAt(pos) != c; pos++);
+            for (pos = 0; sb.charAt(pos) != c; pos++) ;
             boolean b1 = (pos1 & (1 << (c - 'A'))) != 0;
             boolean b2 = (pos2 & (1 << (c - 'A'))) != 0;
             sb.setCharAt(pos, b1 && b2 ? '&' : (b1 ? '1' : b2 ? '2' : ' '));
@@ -161,9 +162,18 @@ public class GameRules {
         int pos;
         StringBuilder sb = new StringBuilder(template);
         for (char c = 'A'; c < 'Y'; c++) {
-            for (pos = 0; sb.charAt(pos) != c; pos++);
+            for (pos = 0; sb.charAt(pos) != c; pos++) ;
             sb.setCharAt(pos, getChar(c - 'A'));
         }
         return sb.toString();
+    }
+
+    public void add(boolean player, int index) {
+        if(player){
+            truePlayer |= (1 << index);
+        }else{
+            falsePlayer |= (1<<index);
+        }
+
     }
 }

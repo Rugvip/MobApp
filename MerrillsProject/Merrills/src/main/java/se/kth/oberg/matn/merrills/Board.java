@@ -7,12 +7,13 @@ import android.graphics.drawable.Drawable;
 
 public class Board {
     private Piece[] piece = new Piece[24];
-    private GameRules rules;
+    private GameRules rules = new GameRules();
     private Drawable backgroundDrawable;
     private Drawable pieceDrawable;
     private Dimensions dimensions;
     private int size;
     private static Paint boardPaint = new Paint();
+
     static {
         boardPaint.setColor(0xFF000000);
         boardPaint.setStyle(Paint.Style.STROKE);
@@ -44,16 +45,23 @@ public class Board {
         canvas.drawLine(seven2 * 1.0f, seven2 * 7.0f, seven2 * 05.0f, seven2 * 07.0f, boardPaint);
 
         Markers.BLACK.draw(canvas, ~0, seven);
+        for (int index = 0; index < 24; index++) {
+            if(null != piece[index]){
+                piece[index].draw(canvas,seven);
+            }
+        }
     }
 
     public void tryPlace(int to) throws IllegalMoveException {
-        if(!rules.isFreeSpot(to)){
+        if (!rules.isFreeSpot(to)) {
             throw new IllegalMoveException("illegal placement!");
-        }else{
+        } else {
             piece[to] = new Piece(pieceDrawable, Color.BLUE);
+            piece[to].animateMove(Dimensions.getPoint(to));
+            rules.add(true,to);
         }
     }
-    
+
     public void tryMove(int to, int from) {
         //Check if legal, Move in arrayList, animation in piece.move w/e
 //        if (rules.legalMove(to, from, piece[to].getColor())) {

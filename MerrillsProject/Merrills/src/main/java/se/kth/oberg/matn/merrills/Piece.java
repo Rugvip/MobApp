@@ -4,14 +4,13 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.graphics.Canvas;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 
 public class Piece {
     private Drawable drawable;
-    private int x;
-    private int y;
-    private int width;
-    private int height;
+    private float x;
+    private float y;
     private int color;
 
     public Piece(Drawable drawable, int color) {
@@ -23,19 +22,20 @@ public class Piece {
     }
 
     public void draw(Canvas canvas, float seven) {
+        float one3 = 1.0f / 3.0f;
         drawable.setBounds(
-                x - (int) (seven / 3.0f),
-                y - (int) (seven / 3.0f),
-                x + (int) (seven / 3.0f),
-                y + (int) (seven / 3.0f));
+                (int) ((x - one3) * seven ),
+                (int) ((y - one3) * seven ),
+                (int) ((x + one3) * seven ),
+                (int) ((y + one3) * seven ));
         drawable.draw(canvas);
     }
 
-    public void animateMove(Point newPosition) {
-        ObjectAnimator animMiddleX = ObjectAnimator.ofInt(this, "x", 360);
-        ObjectAnimator animMiddleY = ObjectAnimator.ofInt(this, "y", 640);
-        ObjectAnimator animTouchX = ObjectAnimator.ofInt(this, "x", (int) newPosition.x);
-        ObjectAnimator animTouchY = ObjectAnimator.ofInt(this, "y", (int) newPosition.y);
+    public void animateMove(PointF newPosition) {
+        ObjectAnimator animMiddleX = ObjectAnimator.ofFloat(this, "x", 3.5f);
+        ObjectAnimator animMiddleY = ObjectAnimator.ofFloat(this, "y", 3.5f);
+        ObjectAnimator animTouchX = ObjectAnimator.ofFloat(this, "x", newPosition.x);
+        ObjectAnimator animTouchY = ObjectAnimator.ofFloat(this, "y", newPosition.y);
 
         AnimatorSet set = new AnimatorSet();
         set.play(animMiddleX).with(animMiddleY);
@@ -45,19 +45,19 @@ public class Piece {
         set.start();
     }
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public void setX(int x) {
+    public void setX(float x) {
         this.x = x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 
-    public void setY(int y) {
+    public void setY(float y) {
         this.y = y;
     }
 

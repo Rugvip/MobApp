@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Toast;
 
 /**
  * Created by Rugvip on 2013-11-27.
@@ -22,18 +23,21 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         super(context);
 
         getHolder().addCallback(this);
-        Drawable d = context.getResources().getDrawable(android.R.drawable.ic_menu_share);
+        Drawable p = context.getResources().getDrawable(R.drawable.piece);
         Drawable b = context.getResources().getDrawable(R.drawable.board);
-        piece = new Piece(d, 100, 100, 0xFFFF0000);
-        board = new Board(b);
+        board = new Board(b,p);
         mainThread = new MainThread(getHolder(), board);
-        //mainThread = new MainThread(getHolder(), piece);
 
         setOnTouchListener(new PiecePokeListener() {
             @Override
             public void onPiecePoke(int id, float pieceX, float pieceY) {
                 Log.e("poke", "piece: " + id + " x: " + pieceX + " y: " + pieceY);
-                board.tryPlace(id);
+                try {
+                    board.tryPlace(id);
+                } catch (IllegalMoveException e) {
+                    e.printStackTrace();
+                    Log.e("tryPlace","" + e.toString());
+                }
             }
         });
     }
