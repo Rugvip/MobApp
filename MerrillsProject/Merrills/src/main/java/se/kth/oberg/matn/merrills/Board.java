@@ -8,7 +8,7 @@ public class Board {
     private Piece[] piece = new Piece[24];
     private GameRules rules;
     private Drawable draw;
-    private Dimentionalizer.Dimentionalization diment = new Dimentionalizer.Dimentionalization();
+    private Dimensions dimensions;
     private int size;
 
     public Board(Drawable draw) {
@@ -16,11 +16,14 @@ public class Board {
     }
 
     public void draw(Canvas canvas) {
-        Dimentionalizer.dimentionalize(canvas.getWidth(), canvas.getHeight(), diment);
-        canvas.translate(diment.getOffsetX(), diment.getOffsetY());
-        draw.setBounds(0, 0, diment.getSize(), diment.getSize());
+        dimensions = Dimensions.calculate(canvas.getWidth(), canvas.getHeight(), dimensions);
+        canvas.translate(dimensions.getOffsetX(), dimensions.getOffsetY());
+        draw.setBounds(0, 0, dimensions.getSize(), dimensions.getSize());
         draw.draw(canvas);
-        float size = diment.getSize();
+
+        float size = dimensions.getSize();
+        float seven = size / 7.0f;
+        float seven2 = size / 14.0f;
 
         Paint p = new Paint();
         p.setColor(0xFF000000);
@@ -34,13 +37,15 @@ public class Board {
         canvas.drawLine(size / (14.0f / 7.0f), size / (14.0f / 9.0f), size / (14.0f / 7.0f), size / (14.0f / 13.0f), p);
         canvas.drawLine(size / 14.0f, size / (14.0f / 7.0f), size / (14.0f / 5.0f), size / (14.0f / 7.0f), p);
 
+        Markers.BLACK.draw(canvas, ~0, seven);
+        Markers.GREEN.draw(canvas, 0b01100010_11010101_01010110, seven);
     }
 
     public void tryMove(int to, int from) {
         //Check if legal, Move in arrayList, animation in piece.move w/e
-        if (rules.legalMove(to, from, piece[to].getColor())) {
-            movePiece(to, from);
-        }
+//        if (rules.legalMove(to, from, piece[to].getColor())) {
+//            movePiece(to, from);
+//        }
     }
 
     private void movePiece(int to, int from) {
@@ -48,7 +53,7 @@ public class Board {
         piece[from] = null;
         //       piece[to].animateMove(CoordinateConverter(from));
 
-        if (rules.remove(to)) {
+        if (rules.isMillMaker(true, to)) {
             //Allow user to remove a marker
         }
     }

@@ -8,7 +8,7 @@ import android.view.View;
  * Created by Rugvip on 2013-11-27.
  */
 public abstract class PiecePokeListener implements View.OnTouchListener {
-    private Dimentionalizer.Dimentionalization dimentionalization = new Dimentionalizer.Dimentionalization();
+    private Dimensions dimensions;
 
     public abstract void onPiecePoke(int id, float pieceX, float pieceY);
 
@@ -28,12 +28,12 @@ public abstract class PiecePokeListener implements View.OnTouchListener {
             return false;
         }
 
-        Dimentionalizer.dimentionalize(view.getWidth(), view.getHeight(), dimentionalization);
+        dimensions = Dimensions.calculate(view.getWidth(), view.getHeight(), dimensions);
 
-        float size7 = dimentionalization.getSize() / 7.0f;
+        float size7 = dimensions.getSize() / 7.0f;
         /* convert to board coordinates [0,7] */
-        float x = (motionEvent.getX() - dimentionalization.getOffsetX()) / size7;
-        float y = (motionEvent.getY() - dimentionalization.getOffsetY()) /  size7;
+        float x = (motionEvent.getX() - dimensions.getOffsetX()) / size7;
+        float y = (motionEvent.getY() - dimensions.getOffsetY()) /  size7;
 
         Log.d("Touch", "down at (" + x + ", " + y + ")");
 
