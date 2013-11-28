@@ -3,26 +3,18 @@ package se.kth.oberg.matn.merrills.game;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Game {
-    private enum State {
-        PLACE,
-        REMOVE,
-        CHOOSE_FROM,
-        CHOOSE_TO,
-        WIN
-    }
+public class GameState {
 
     private boolean activePlayer = true;
-    private TurnType turnType = TurnType.ADD;
-    private State state = State.PLACE;
+    private TurnType turnType = TurnType.PLACE;
 
-    private GameRules board = new GameRules();
-    private int selectedIndex;
+    private BoardState board = new BoardState();
+    private int selectedIndex = -1;
     private int trueCount = 9;
     private int falseCount = 9;
 
     public void doPosition(int index) {
-        switch (state) {
+        switch (turnType) {
             case PLACE:
                 doPlace(index);
                 break;
@@ -44,9 +36,9 @@ public class Game {
         activePlayer = !activePlayer;
         int count = activePlayer ? trueCount : falseCount;
         if (count > 0) {
-            state = State.PLACE;
+            turnType = TurnType.PLACE;
         } else {
-            state = State.CHOOSE_FROM;
+            turnType = TurnType.CHOOSE_FROM;
         }
     }
 
@@ -62,7 +54,7 @@ public class Game {
             }
 
             if (remove) {
-                state = State.REMOVE;
+                turnType = TurnType.REMOVE;
             } else {
                 next();
             }
@@ -85,7 +77,7 @@ public class Game {
             }
             selectedIndex = index;
             notifySelected(index, true);
-            state = State.CHOOSE_TO;
+            turnType = TurnType.CHOOSE_TO;
         }
     }
 
@@ -93,7 +85,7 @@ public class Game {
         if (index == selectedIndex) {
             notifySelected(selectedIndex, false);
             selectedIndex = -1;
-            state = State.CHOOSE_FROM;
+            turnType = TurnType.CHOOSE_FROM;
         } else if (board.isPlayer(index, activePlayer)) {
             if (selectedIndex >= 0) {
                 notifySelected(selectedIndex, false);
@@ -107,10 +99,18 @@ public class Game {
             selectedIndex = -1;
 
             if (remove) {
-                state = State.REMOVE;
+                turnType = TurnType.REMOVE;
             } else {
                 next();
             }
+        }
+    }
+
+    public int getSelectionMoves() {
+        if (selectedIndex < 0) {
+            return 0;
+        } else {
+            return board.getAvailableMoves(selectedIndex);
         }
     }
 

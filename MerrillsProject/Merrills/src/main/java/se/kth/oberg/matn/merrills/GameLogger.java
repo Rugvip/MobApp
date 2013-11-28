@@ -2,22 +2,22 @@ package se.kth.oberg.matn.merrills;
 
 import android.util.Log;
 
-import se.kth.oberg.matn.merrills.game.Game;
+import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
 import se.kth.oberg.matn.merrills.game.PieceMoveListener;
 import se.kth.oberg.matn.merrills.game.PieceRemoveListener;
 import se.kth.oberg.matn.merrills.game.PieceSelectListener;
 
 public class GameLogger {
-    private Game game;
+    private GameState gameState;
 
-    public GameLogger(Game game) {
-        this.game = game;
+    public GameLogger(GameState gameState) {
+        this.gameState = gameState;
 
-        game.addPieceAddListener(pieceAddListener);
-        game.addPieceRemoveListener(pieceRemoveListener);
-        game.addPieceMoveListener(pieceMoveListener);
-        game.addPieceSelectListener(pieceSelectListener);
+        gameState.addPieceAddListener(pieceAddListener);
+        gameState.addPieceRemoveListener(pieceRemoveListener);
+        gameState.addPieceMoveListener(pieceMoveListener);
+        gameState.addPieceSelectListener(pieceSelectListener);
     }
 
     private PieceAddListener pieceAddListener = new PieceAddListener() {

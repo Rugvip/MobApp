@@ -11,7 +11,7 @@ import android.view.SurfaceView;
 import java.util.ArrayList;
 import java.util.List;
 
-import se.kth.oberg.matn.merrills.game.Game;
+import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
 import se.kth.oberg.matn.merrills.game.PieceMoveListener;
 import se.kth.oberg.matn.merrills.game.PieceRemoveListener;
@@ -21,7 +21,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
     private Piece[] pieces = new Piece[24];
     private List<Piece> removedPieces = new ArrayList<>();
     private Thread mainThread;
-    private Game game;
+    private GameState gameState;
     private Drawable backgroundDrawable;
     private Drawable trueDrawable;
     private Drawable falseDrawable;
@@ -32,20 +32,20 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         boardPaint.setColor(0xFF_000000);
     }
 
-    public BoardView(Context context, Game game) {
+    public BoardView(Context context, GameState gameState) {
         super(context);
 
-        this.game = game;
+        this.gameState = gameState;
         getHolder().addCallback(this);
 
         falseDrawable = context.getResources().getDrawable(R.drawable.false_piece);
         trueDrawable = context.getResources().getDrawable(R.drawable.true_piece);
         backgroundDrawable = context.getResources().getDrawable(R.drawable.board);
 
-        game.addPieceAddListener(pieceAddListener);
-        game.addPieceRemoveListener(pieceRemoveListener);
-        game.addPieceMoveListener(pieceMoveListener);
-        game.addPieceSelectListener(pieceSelectListener);
+        gameState.addPieceAddListener(pieceAddListener);
+        gameState.addPieceRemoveListener(pieceRemoveListener);
+        gameState.addPieceMoveListener(pieceMoveListener);
+        gameState.addPieceSelectListener(pieceSelectListener);
     }
 
     @Override
@@ -141,6 +141,8 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                     for (Piece piece : removedPieces) {
                         piece.draw(canvas, seven);
                     }
+
+                    Markers.GREEN.draw(canvas, gameState.getSelectionMoves(), seven);
                 } else {
                     break;
                 }

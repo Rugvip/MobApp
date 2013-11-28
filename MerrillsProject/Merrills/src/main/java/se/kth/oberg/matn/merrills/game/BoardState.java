@@ -1,8 +1,6 @@
 package se.kth.oberg.matn.merrills.game;
 
-import android.provider.BaseColumns;
-
-public class GameRules {
+public class BoardState {
     public static final int TRUE_PLAYER = 1;
     public static final int FALSE_PLAYER = 0;
     public static final int NO_PLAYER = -1;
@@ -55,18 +53,18 @@ public class GameRules {
     private static boolean isMillMaker(int index, int positions) {
         int mask = (1 << index);
         if ((index % 6) < 3) {
-            if ((~positions & ((mask << 3) | (mask >> 21) | (mask << 6) | (mask >> 18))) == 0) {
+            if (((0xFFFFFF ^ positions) & ((mask << 3) | (mask >> 21) | (mask << 6) | (mask >> 18))) == 0) {
                 return true;
             }
-            if ((~positions & ((mask >> 3) | (mask << 21) | (mask >> 6) | (mask << 18))) == 0) {
+            if (((0xFFFFFF ^ positions) & ((mask >> 3) | (mask << 21) | (mask >> 6) | (mask << 18))) == 0) {
                 return true;
             }
         } else {
-            if ((~positions & ((mask << 3) | (mask >> 21) | (mask >> 3) | (mask << 21))) == 0) {
+            if (((0xFFFFFF ^ positions) & ((mask << 3) | (mask >> 21) | (mask >> 3) | (mask << 21))) == 0) {
                 return true;
             }
             int row = (index / 3) * 3;
-            if ((((1 << row) | (1 << (row + 1)) | (1 << (row + 2))) & ~(positions | mask)) == 0) {
+            if ((((1 << row) | (1 << (row + 1)) | (1 << (row + 2))) & (0xFFFFFF ^ (positions | mask))) == 0) {
                 return true;
             }
         }
@@ -110,7 +108,7 @@ public class GameRules {
     }
 
     public boolean isPlayer(int index, boolean player) {
-        return getPlayer(index) == (player ? GameRules.TRUE_PLAYER : GameRules.FALSE_PLAYER);
+        return getPlayer(index) == (player ? BoardState.TRUE_PLAYER : BoardState.FALSE_PLAYER);
     }
 
     public void remove(int index) {

@@ -63,22 +63,24 @@ public class MerrillsModel {
         ret |= (positions & 0b110000110000110000110000) >> 1;
         return ret & 0xFFFFFF;
     }
-
+// 0b00000100_00000000_00000000
+// 0b00100000_00000000_00000001
+// 0b11100011_01101011_01011011
     public static boolean isMillMaker(int index, int positions) {
         int mask = (1 << index);
         if ((index % 6) < 3) {
-            if ((~positions & ((mask << 3) | (mask >> 21) | (mask << 6) | (mask >> 18))) == 0) {
+            if (((0xFFFFFF ^ positions) & ((mask << 3) | (mask >> 21) | (mask << 6) | (mask >> 18))) == 0) {
                 return true;
             }
-            if ((~positions & ((mask >> 3) | (mask << 21) | (mask >> 6) | (mask << 18))) == 0) {
+            if (((0xFFFFFF ^ positions) & ((mask >> 3) | (mask << 21) | (mask >> 6) | (mask << 18))) == 0) {
                 return true;
             }
         } else {
-            if ((~positions & ((mask << 3) | (mask >> 21) | (mask >> 3) | (mask << 21))) == 0) {
+            if (((0xFFFFFF ^ positions) & ((mask << 3) | (mask >> 21) | (mask >> 3) | (mask << 21))) == 0) {
                 return true;
             }
             int row = (index / 3) * 3;
-            if ((((1 << row) | (1 << (row + 1)) | (1 << (row + 2))) & ~(positions | mask)) == 0) {
+            if ((((1 << row) | (1 << (row + 1)) | (1 << (row + 2))) & (0xFFFFFF ^ (positions | mask))) == 0) {
                 return true;
             }
         }
@@ -86,7 +88,7 @@ public class MerrillsModel {
     }
 
     public boolean isMillMaker(boolean player, int index) {
-        return isMillMaker(index, player ? truePlayer : falsePlayer) && (getAvailableMoves(player) & (1 << index)) != 0;
+        return isMillMaker(index, player ? truePlayer : falsePlayer);
     }
 
     private int getAvailableMoves(int positions) {

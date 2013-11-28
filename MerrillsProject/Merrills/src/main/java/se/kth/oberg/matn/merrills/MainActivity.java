@@ -8,7 +8,7 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
-import se.kth.oberg.matn.merrills.game.Game;
+import se.kth.oberg.matn.merrills.game.GameState;
 
 public class MainActivity extends Activity {
     private BoardView view;
@@ -20,17 +20,17 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        final Game game = new Game();
+        final GameState gameState = new GameState();
 
-        new GameLogger(game);
+        new GameLogger(gameState);
 
-        view = new BoardView(this, game);
+        view = new BoardView(this, gameState);
         setContentView(view);
 
         view.setOnTouchListener(new PiecePokeListener() {
             @Override
             public void onPiecePoke(int id, float pieceX, float pieceY) {
-                game.doPosition(id);
+                gameState.doPosition(id);
             }
         });
     }
