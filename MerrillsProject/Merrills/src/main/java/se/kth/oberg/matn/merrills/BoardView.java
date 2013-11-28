@@ -8,13 +8,18 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.kth.oberg.matn.merrills.game.Game;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
 import se.kth.oberg.matn.merrills.game.PieceMoveListener;
 import se.kth.oberg.matn.merrills.game.PieceRemoveListener;
+import se.kth.oberg.matn.merrills.game.PieceSelectListener;
 
 public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
     private Piece[] pieces = new Piece[24];
+    private List<Piece> removedPieces = new ArrayList<>();
     private Thread mainThread;
     private Game game;
     private Drawable backgroundDrawable;
@@ -22,6 +27,10 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
     private Drawable falseDrawable;
     private Dimensions dimensions;
     private static Paint boardPaint = new Paint();
+    static {
+        boardPaint.setStyle(Paint.Style.STROKE);
+        boardPaint.setColor(0xFF_000000);
+    }
 
     public BoardView(Context context, Game game) {
         super(context);
@@ -36,6 +45,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         game.addPieceAddListener(pieceAddListener);
         game.addPieceRemoveListener(pieceRemoveListener);
         game.addPieceMoveListener(pieceMoveListener);
+        game.addPieceSelectListener(pieceSelectListener);
     }
 
     @Override
@@ -60,14 +70,16 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         @Override
         public void onPieceAdded(boolean player, int index) {
             pieces[index] = new Piece(player ? trueDrawable : falseDrawable);
-            pieces[index].animateMove(Dimensions.getPoint(index));
+            pieces[index].animateSpawn(Dimensions.getPoint(index));
         }
     };
 
     private PieceRemoveListener pieceRemoveListener = new PieceRemoveListener() {
         @Override
         public void onPieceRemoved(int index) {
+            removedPieces.add(pieces[index]);
             pieces[index].animateRemove();
+            pieces[index] = null;
         }
     };
 
@@ -76,6 +88,13 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         public void onPieceMoved(int fromIndex, int toIndex) {
             pieces[toIndex] = pieces[fromIndex];
             pieces[toIndex].animateMove(Dimensions.getPoint(toIndex));
+        }
+    };
+
+    private PieceSelectListener pieceSelectListener = new PieceSelectListener() {
+        @Override
+        public void onPieceSelect(int index, boolean selected) {
+            pieces[index].setSelected(selected);
         }
     };
 
@@ -117,6 +136,10 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                         if (null != pieces[index]) {
                             pieces[index].draw(canvas, seven);
                         }
+                    }
+
+                    for (Piece piece : removedPieces) {
+                        piece.draw(canvas, seven);
                     }
                 } else {
                     break;

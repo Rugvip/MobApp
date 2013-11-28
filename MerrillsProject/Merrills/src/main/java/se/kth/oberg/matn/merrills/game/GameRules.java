@@ -1,22 +1,8 @@
 package se.kth.oberg.matn.merrills.game;
 
+import android.provider.BaseColumns;
 
 public class GameRules {
-    private static final String template = "" +
-            "C------F------I\n" +
-            "|      |      |\n" +
-            "| B----E----H |\n" +
-            "| |    |    | |\n" +
-            "| | A--D--G | |\n" +
-            "| | |     | | |\n" +
-            "X-W-V     J-K-L\n" +
-            "| | |     | | |\n" +
-            "| | S--P--M | |\n" +
-            "| |    |    | |\n" +
-            "| T----Q----N |\n" +
-            "|      |      |\n" +
-            "U------R------O";
-
     public static final int TRUE_PLAYER = 1;
     public static final int FALSE_PLAYER = 0;
     public static final int NO_PLAYER = -1;
@@ -66,7 +52,7 @@ public class GameRules {
         return ret & 0xFFFFFF;
     }
 
-    public static boolean isMillMaker(int index, int positions) {
+    private static boolean isMillMaker(int index, int positions) {
         int mask = (1 << index);
         if ((index % 6) < 3) {
             if ((~positions & ((mask << 3) | (mask >> 21) | (mask << 6) | (mask >> 18))) == 0) {
@@ -87,96 +73,78 @@ public class GameRules {
         return false;
     }
 
-    public boolean isMillMaker(boolean player, int index) {
-        return isMillMaker(index, player ? truePlayer : falsePlayer) && (getAvailableMoves(player) & (1 << index)) != 0;
-    }
-
-    private int getAvailableMoves(int positions) {
-        int ret = getAvailableForMask(positions);
-        return ret & ~(truePlayer | falsePlayer);
-    }
-
     public int getAvailableMoves(boolean player) {
-        return getAvailableMoves(player ? truePlayer : falsePlayer);
+        return getAvailableForMask(player ? truePlayer : falsePlayer) & ~(truePlayer | falsePlayer);
+    }
+
+    public int getAvailableMoves(int index) {
+        return getAvailableForPos(index) & ~(truePlayer | falsePlayer);
+    }
+
+    public boolean isValidMove(int fromIndex, int toIndex) {
+        return (getAvailableMoves(fromIndex) & (1 << toIndex)) != 0;
     }
 
     public boolean isFreeSpot(int index) {
         return ((1 << index) & (~(truePlayer | falsePlayer))) != 0;
     }
 
-    public boolean remove(boolean player, int index) {
-        boolean ret = false;
-        if (player) {
-            ret = (truePlayer & (1 << index)) != 0;
-            truePlayer &= ~(1 << index);
-        } else {
-            ret = (falsePlayer & (1 << index)) != 0;
-            falsePlayer &= ~(1 << index);
-        }
-        return ret;
-    }
-
     public boolean hasLost(boolean player) {
         if (getAvailableMoves(player) == 0) {
             return true;
         }
-        int positions = player ? truePlayer : falsePlayer;
+    int positions = player ? truePlayer : falsePlayer;
         positions = positions & (positions - 1);
         return (positions & (positions - 1)) == 0;
     }
 
-    public static String drawPositions(int positions) {
-        int pos;
-        StringBuilder sb = new StringBuilder(template);
-        for (char c = 'A'; c < 'Y'; c++) {
-            for (pos = 0; sb.charAt(pos) != c; pos++) ;
-            sb.setCharAt(pos, (positions & (1 << (c - 'A'))) == 0 ? ' ' : '@');
+    public int getPlayer(int index) {
+        check();
+        if (((1 << index) & truePlayer) != 0) {
+            return TRUE_PLAYER;
+        } else if (((1 << index) & falsePlayer) != 0) {
+            return FALSE_PLAYER;
+        } else {
+            return NO_PLAYER;
         }
-        return sb.toString();
     }
 
-    public static String drawPositions(int pos1, int pos2) {
-        int pos;
-        StringBuilder sb = new StringBuilder(template);
-        for (char c = 'A'; c < 'Y'; c++) {
-            for (pos = 0; sb.charAt(pos) != c; pos++) ;
-            boolean b1 = (pos1 & (1 << (c - 'A'))) != 0;
-            boolean b2 = (pos2 & (1 << (c - 'A'))) != 0;
-            sb.setCharAt(pos, b1 && b2 ? '&' : (b1 ? '1' : b2 ? '2' : ' '));
-        }
-        return sb.toString();
+    public boolean isPlayer(int index, boolean player) {
+        return getPlayer(index) == (player ? GameRules.TRUE_PLAYER : GameRules.FALSE_PLAYER);
     }
 
-    public char getChar(int pos) {
-        int mask = 1 << pos;
-        if ((truePlayer & falsePlayer & mask) != 0) {
-            return '&';
-        }
-        if ((truePlayer & mask) != 0) {
-            return 't';
-        }
-        if ((falsePlayer & mask) != 0) {
-            return 'f';
-        }
-        return ' ';
+    public void remove(int index) {
+        truePlayer &= ~(1 << index);
+        falsePlayer &= ~(1 << index);
+        check();
     }
 
-    public String toString() {
-        int pos;
-        StringBuilder sb = new StringBuilder(template);
-        for (char c = 'A'; c < 'Y'; c++) {
-            for (pos = 0; sb.charAt(pos) != c; pos++) ;
-            sb.setCharAt(pos, getChar(c - 'A'));
-        }
-        return sb.toString();
-    }
-
-    public void add(boolean player, int index) {
-        if(player){
+    public boolean add(int index, boolean player) {
+        boolean ret = isMillMaker(index, player ? truePlayer : falsePlayer);
+        if (player) {
             truePlayer |= (1 << index);
-        }else{
-            falsePlayer |= (1<<index);
+        } else {
+            falsePlayer |= (1 << index);
         }
+        check();
+        return ret;
+    }
 
+    private void check() {
+        if ((truePlayer & falsePlayer) != 0) {
+            throw new IllegalStateException("Overlapping pieces");
+        }
+    }
+
+    public boolean move(int fromIndex, int toIndex) {
+        int playerType = getPlayer(fromIndex);
+        if (playerType == NO_PLAYER) {
+            throw new IllegalArgumentException("fromIndex is empty");
+        }
+        if ((getAvailableMoves(fromIndex) & (1 << toIndex)) == 0) {
+            throw new IllegalArgumentException("illegal move");
+        }
+        remove(fromIndex);
+        return add(toIndex, playerType == TRUE_PLAYER);
     }
 }

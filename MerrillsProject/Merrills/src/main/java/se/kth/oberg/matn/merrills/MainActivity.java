@@ -22,6 +22,8 @@ public class MainActivity extends Activity {
 
         final Game game = new Game();
 
+        new GameLogger(game);
+
         view = new BoardView(this, game);
         setContentView(view);
 
