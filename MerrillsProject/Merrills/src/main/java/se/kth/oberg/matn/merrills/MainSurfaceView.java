@@ -1,15 +1,10 @@
 package se.kth.oberg.matn.merrills;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
-import android.widget.Toast;
 
 /**
  * Created by Rugvip on 2013-11-27.
@@ -17,23 +12,26 @@ import android.widget.Toast;
 public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callback{
     private Thread mainThread;
     Piece piece;
-    Board board;
+    BoardView board;
+    boolean player = true;
 
     public MainSurfaceView(Context context) {
         super(context);
 
         getHolder().addCallback(this);
-        Drawable p = context.getResources().getDrawable(R.drawable.piece);
+        Drawable tP = context.getResources().getDrawable(R.drawable.falsepiece);
+        Drawable fP = context.getResources().getDrawable(R.drawable.truepiece);
         Drawable b = context.getResources().getDrawable(R.drawable.board);
-        board = new Board(b,p);
+        board = new BoardView(b,fP,tP);
         mainThread = new MainThread(getHolder(), board);
 
         setOnTouchListener(new PiecePokeListener() {
             @Override
             public void onPiecePoke(int id, float pieceX, float pieceY) {
-                Log.e("poke", "piece: " + id + " x: " + pieceX + " y: " + pieceY);
+                Log.e("poke", "falsepiece: " + id + " x: " + pieceX + " y: " + pieceY);
                 try {
-                    board.tryPlace(id);
+                    board.tryPlace(id,player);
+                    player = !player;
                 } catch (IllegalMoveException e) {
                     e.printStackTrace();
                     Log.e("tryPlace","" + e.toString());

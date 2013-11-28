@@ -5,9 +5,9 @@ import android.view.SurfaceHolder;
 
 public class MainThread extends Thread {
     private SurfaceHolder holder;
-    private Board board;
+    private BoardView board;
 
-    public MainThread(SurfaceHolder holder, Board board) {
+    public MainThread(SurfaceHolder holder, BoardView board) {
         this.holder = holder;
         this.board = board;
     }
