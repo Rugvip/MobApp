@@ -7,6 +7,7 @@ public class Board {
     private Piece[] piece = new Piece[24];
     private GameRules rules;
     private Drawable draw;
+    private Dimentionalizer.Dimentionalization diment = new Dimentionalizer.Dimentionalization();
     private int size;
 
     public Board(Drawable draw) {
@@ -14,26 +15,14 @@ public class Board {
     }
 
     public void draw(Canvas canvas) {
-        //TODO get these out of heaaar
-        int offsetWidth = (int) (canvas.getWidth() / 20.0);
-        int offsetHeight = (int) (canvas.getHeight() / 10.0);
-        size = Math.min(canvas.getHeight(), canvas.getWidth());
-        if (canvas.getHeight() > canvas.getWidth()) {
-            draw.setBounds(
-                    offsetWidth,
-                    offsetHeight,
-                    size - offsetWidth,
-                    size);
-            draw.draw(canvas);
-        } else {
-            draw.setBounds(
-                    offsetWidth,
-                    offsetHeight,
-                    size,
-                    size - offsetHeight);
-            draw.draw(canvas);
+        Dimentionalizer.dimentionalize(canvas.getWidth(), canvas.getHeight(), diment);
+        draw.setBounds(
+                diment.getOffsetX(),
+                diment.getOffsetY(),
+                diment.getSize() + diment.getOffsetX(),
+                diment.getSize() + diment.getOffsetY());
+        draw.draw(canvas);
 
-        }
     }
 
     public void tryMove(int to, int from) {
