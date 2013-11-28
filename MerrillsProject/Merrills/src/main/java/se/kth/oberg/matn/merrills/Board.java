@@ -26,7 +26,14 @@ public class Board {
         p.setColor(0xFF000000);
         p.setStrokeWidth(size / 100.0f);
         p.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(size/14.0f, size/14.0f, size*13.0f/14.0f, size*13.0f/14.0f, p);
+        canvas.drawRect(size / 14.0f, size / 14.0f, size * 13.0f / 14.0f, size * 13.0f / 14.0f, p);
+        canvas.drawRect(size / (14.0f / 3.0f), size / (14.0f / 3.0f), size / (14.0f / 11.0f), size / (14.0f / 11.0f), p);
+        canvas.drawRect(size / (14.0f / 5.0f), size / (14.0f / 5.0f), size / (14.0f / 9.0f), size / (14.0f / 9.0f), p);
+        canvas.drawLine(size / (14.0f / 7.0f), size / 14.0f, size / (14.0f / 7.0f), size / (14.0f / 5.0f), p);
+        canvas.drawLine(size / (14.0f / 9.0f), size / (14.0f / 7.0f), size / (14.0f / 13.0f), size / (14.0f / 7.0f), p);
+        canvas.drawLine(size / (14.0f / 7.0f), size / (14.0f / 9.0f), size / (14.0f / 7.0f), size / (14.0f / 13.0f), p);
+        canvas.drawLine(size / 14.0f, size / (14.0f / 7.0f), size / (14.0f / 5.0f), size / (14.0f / 7.0f), p);
+
     }
 
     public void tryMove(int to, int from) {
