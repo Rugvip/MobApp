@@ -1,6 +1,7 @@
 package se.kth.oberg.matn.merrills;
 
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 
 public class Board {
@@ -16,13 +17,16 @@ public class Board {
 
     public void draw(Canvas canvas) {
         Dimentionalizer.dimentionalize(canvas.getWidth(), canvas.getHeight(), diment);
-        draw.setBounds(
-                diment.getOffsetX(),
-                diment.getOffsetY(),
-                diment.getSize() + diment.getOffsetX(),
-                diment.getSize() + diment.getOffsetY());
+        canvas.translate(diment.getOffsetX(), diment.getOffsetY());
+        draw.setBounds(0, 0, diment.getSize(), diment.getSize());
         draw.draw(canvas);
+        float size = diment.getSize();
 
+        Paint p = new Paint();
+        p.setColor(0xFF000000);
+        p.setStrokeWidth(size / 100.0f);
+        p.setStyle(Paint.Style.STROKE);
+        canvas.drawRect(size/14.0f, size/14.0f, size*13.0f/14.0f, size*13.0f/14.0f, p);
     }
 
     public void tryMove(int to, int from) {
