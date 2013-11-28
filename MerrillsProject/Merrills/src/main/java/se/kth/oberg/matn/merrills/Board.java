@@ -10,6 +10,11 @@ public class Board {
     private Drawable draw;
     private Dimensions dimensions;
     private int size;
+    private static Paint boardPaint = new Paint();
+    static {
+        boardPaint.setColor(0xFF000000);
+        boardPaint.setStyle(Paint.Style.STROKE);
+    }
 
     public Board(Drawable draw) {
         this.draw = draw;
@@ -25,20 +30,17 @@ public class Board {
         float seven = size / 7.0f;
         float seven2 = size / 14.0f;
 
-        Paint p = new Paint();
-        p.setColor(0xFF000000);
-        p.setStrokeWidth(size / 100.0f);
-        p.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(size / 14.0f, size / 14.0f, size * 13.0f / 14.0f, size * 13.0f / 14.0f, p);
-        canvas.drawRect(size / (14.0f / 3.0f), size / (14.0f / 3.0f), size / (14.0f / 11.0f), size / (14.0f / 11.0f), p);
-        canvas.drawRect(size / (14.0f / 5.0f), size / (14.0f / 5.0f), size / (14.0f / 9.0f), size / (14.0f / 9.0f), p);
-        canvas.drawLine(size / (14.0f / 7.0f), size / 14.0f, size / (14.0f / 7.0f), size / (14.0f / 5.0f), p);
-        canvas.drawLine(size / (14.0f / 9.0f), size / (14.0f / 7.0f), size / (14.0f / 13.0f), size / (14.0f / 7.0f), p);
-        canvas.drawLine(size / (14.0f / 7.0f), size / (14.0f / 9.0f), size / (14.0f / 7.0f), size / (14.0f / 13.0f), p);
-        canvas.drawLine(size / 14.0f, size / (14.0f / 7.0f), size / (14.0f / 5.0f), size / (14.0f / 7.0f), p);
+        boardPaint.setStrokeWidth(size / 100.0f);
+
+        canvas.drawRect(seven2 * 1.0f, seven2 * 1.0f, seven2 * 13.0f, seven2 * 13.0f, boardPaint);
+        canvas.drawRect(seven2 * 3.0f, seven2 * 3.0f, seven2 * 11.0f, seven2 * 11.0f, boardPaint);
+        canvas.drawRect(seven2 * 5.0f, seven2 * 5.0f, seven2 * 09.0f, seven2 * 09.0f, boardPaint);
+        canvas.drawLine(seven2 * 7.0f, seven2 * 1.0f, seven2 * 07.0f, seven2 * 05.0f, boardPaint);
+        canvas.drawLine(seven2 * 9.0f, seven2 * 7.0f, seven2 * 13.0f, seven2 * 07.0f, boardPaint);
+        canvas.drawLine(seven2 * 7.0f, seven2 * 9.0f, seven2 * 07.0f, seven2 * 13.0f, boardPaint);
+        canvas.drawLine(seven2 * 1.0f, seven2 * 7.0f, seven2 * 05.0f, seven2 * 07.0f, boardPaint);
 
         Markers.BLACK.draw(canvas, ~0, seven);
-        Markers.GREEN.draw(canvas, 0b01100010_11010101_01010110, seven);
     }
 
     public void tryMove(int to, int from) {
