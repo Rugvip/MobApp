@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 public class WelcomeActivity extends Activity {
-
+    DatabaseConnection db = new DatabaseConnection(this);
     private Button newGameButton;
     private Button loadGameButton;
 
@@ -19,6 +19,13 @@ public class WelcomeActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.welcome_activity);
+    }
+
+    public void resetDatabase(View view) {
+        db.open();
+        db.resetDatabase();
+        db.close();
+        Toast.makeText(this, "Database reseted", Toast.LENGTH_LONG).show();
     }
 
     public void newGameListener(View view) {
@@ -33,7 +40,7 @@ public class WelcomeActivity extends Activity {
 //        Intent intent = new Intent(this, MainActivity.class);
 //        intent.putExtra("loadFile", true);
 //        startActivity(intent);
-        DatabaseConnection db = new DatabaseConnection(this);
+
         db.open();
         db.saveGame("asdasd", 00011110, 11100001, 4, 4, 1);
         db.saveGame("dasdasda", 00011110, 11100001, 4, 4, 1);

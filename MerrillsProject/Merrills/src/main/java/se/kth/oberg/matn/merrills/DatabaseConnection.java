@@ -32,6 +32,11 @@ public class DatabaseConnection {
         dbHelper.close();
     }
 
+    public void resetDatabase(){
+        database.execSQL("DROP TABLE IF EXISTS " + DatabaseHelper.TABLE_NAME);
+        database.execSQL(DatabaseHelper.DATABASE_CREATE);
+    }
+
     public void saveGame(String name, int trueMask, int falseMask, int trueCount, int falseCount, int turn) {
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COLUMN_NAME, name);
@@ -40,17 +45,16 @@ public class DatabaseConnection {
         values.put(DatabaseHelper.COLUMN_TRUECOUNT, trueCount);
         values.put(DatabaseHelper.COLUMN_FALSECOUNT, falseCount);
         values.put(DatabaseHelper.COLUMN_TURN, turn);
-
-        long newRowId;
-        newRowId = database.insert(DatabaseHelper.TABLE_NAME, null, values);
+        database.insert(DatabaseHelper.TABLE_NAME, null, values);
     }
 
     public SavedGameState loadGame(int id) {
         Cursor cursor = database.query(DatabaseHelper.TABLE_NAME,
                 columns, DatabaseHelper.COLUMN_ID + "=" + id, null, null, null, null);
-        Log.d("LoadGame", "" + cursor.toString());
         cursor.moveToFirst();
-        return cursorToSave(cursor);
+        SavedGameState save = cursorToSave(cursor);
+        cursor.close();
+        return save;
     }
 
     private SavedGameState cursorToSave(Cursor cursor) {

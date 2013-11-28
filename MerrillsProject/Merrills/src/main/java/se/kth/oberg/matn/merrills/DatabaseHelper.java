@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+    private SQLiteDatabase sqliteDatabase = null;
     public static final String DATABASE_NAME = "savedGames.db";
     public static final String TABLE_NAME = "games";
     public static final String COLUMN_ID = "gameId";
@@ -16,7 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_FALSECOUNT = "falseCount";
     public static final String COLUMN_TURN = "turn";
 
-    private static final String DATABASE_CREATE = "create table "
+    public static final String DATABASE_CREATE = "create table "
             + TABLE_NAME + "("
             + COLUMN_ID + " integer primary key autoincrement, "
             + COLUMN_NAME + " text not null, "
@@ -37,7 +38,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i2) {
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         Log.e("DatabaseHelper", "DatabaseHelper onUpgrade should be run here, 404");
     }
 }

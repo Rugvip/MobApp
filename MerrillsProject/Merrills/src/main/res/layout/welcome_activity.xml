@@ -27,4 +27,12 @@
         android:id="@+id/editText"
         android:layout_gravity="center_horizontal"
         android:text="-Advertisement- such money -Advertisement-"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Drop the base"
+        android:id="@+id/dropDatabaseButton"
+        android:layout_gravity="center_horizontal"
+        android:onClick="resetDatabase"/>
 </LinearLayout>
