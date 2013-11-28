@@ -1,4 +1,4 @@
-package se.kth.oberg.matn.merrills;
+package se.kth.oberg.matn.merrills.game;
 
 
 public class GameRules {
@@ -117,6 +117,9 @@ public class GameRules {
     }
 
     public boolean hasLost(boolean player) {
+        if (getAvailableMoves(player) == 0) {
+            return true;
+        }
         int positions = player ? truePlayer : falsePlayer;
         positions = positions & (positions - 1);
         return (positions & (positions - 1)) == 0;

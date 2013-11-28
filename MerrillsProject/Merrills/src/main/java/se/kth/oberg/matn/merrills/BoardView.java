@@ -1,91 +1,133 @@
 package se.kth.oberg.matn.merrills;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
-public class BoardView {
-    private Piece[] piece = new Piece[24];
-    private GameRules rules = new GameRules();
+import se.kth.oberg.matn.merrills.game.Game;
+import se.kth.oberg.matn.merrills.game.PieceAddListener;
+import se.kth.oberg.matn.merrills.game.PieceMoveListener;
+import se.kth.oberg.matn.merrills.game.PieceRemoveListener;
+
+public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
+    private Piece[] pieces = new Piece[24];
+    private Thread mainThread;
+    private Game game;
     private Drawable backgroundDrawable;
     private Drawable trueDrawable;
     private Drawable falseDrawable;
     private Dimensions dimensions;
-    private int size;
     private static Paint boardPaint = new Paint();
 
-    static {
-        boardPaint.setColor(0xFF000000);
-        boardPaint.setStyle(Paint.Style.STROKE);
+    public BoardView(Context context, Game game) {
+        super(context);
+
+        this.game = game;
+        getHolder().addCallback(this);
+
+        falseDrawable = context.getResources().getDrawable(R.drawable.false_piece);
+        trueDrawable = context.getResources().getDrawable(R.drawable.true_piece);
+        backgroundDrawable = context.getResources().getDrawable(R.drawable.board);
+
+        game.addPieceAddListener(pieceAddListener);
+        game.addPieceRemoveListener(pieceRemoveListener);
+        game.addPieceMoveListener(pieceMoveListener);
     }
 
-    public BoardView(Drawable backgroundDrawable, Drawable falseDrawable, Drawable trueDrawable) {
-        this.backgroundDrawable = backgroundDrawable;
-        this.falseDrawable = falseDrawable;
-        this.trueDrawable = trueDrawable;
+    @Override
+    public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        Log.e("Holder.Callback", "surfaceCreated");
+        mainThread = new RenderThread(getHolder());
+        mainThread.start();
     }
 
-    public void draw(Canvas canvas) {
-        dimensions = Dimensions.calculate(canvas.getWidth(), canvas.getHeight(), dimensions);
-        canvas.translate(dimensions.getOffsetX(), dimensions.getOffsetY());
-        backgroundDrawable.setBounds(0, 0, dimensions.getSize(), dimensions.getSize());
-        backgroundDrawable.draw(canvas);
+    @Override
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+        Log.e("Holder.Callback", "surfaceChanged");
+    }
 
-        float size = dimensions.getSize();
-        float seven = size / 7.0f;
-        float seven2 = size / 14.0f;
+    @Override
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        Log.e("Holder.Callback", "surfaceDestroyed");
+        mainThread.interrupt();
+    }
 
-        boardPaint.setStrokeWidth(size / 100.0f);
+    private PieceAddListener pieceAddListener = new PieceAddListener() {
+        @Override
+        public void onPieceAdded(boolean player, int index) {
+            pieces[index] = new Piece(player ? trueDrawable : falseDrawable);
+            pieces[index].animateMove(Dimensions.getPoint(index));
+        }
+    };
 
-        canvas.drawRect(seven2 * 1.0f, seven2 * 1.0f, seven2 * 13.0f, seven2 * 13.0f, boardPaint);
-        canvas.drawRect(seven2 * 3.0f, seven2 * 3.0f, seven2 * 11.0f, seven2 * 11.0f, boardPaint);
-        canvas.drawRect(seven2 * 5.0f, seven2 * 5.0f, seven2 * 09.0f, seven2 * 09.0f, boardPaint);
-        canvas.drawLine(seven2 * 7.0f, seven2 * 1.0f, seven2 * 07.0f, seven2 * 05.0f, boardPaint);
-        canvas.drawLine(seven2 * 9.0f, seven2 * 7.0f, seven2 * 13.0f, seven2 * 07.0f, boardPaint);
-        canvas.drawLine(seven2 * 7.0f, seven2 * 9.0f, seven2 * 07.0f, seven2 * 13.0f, boardPaint);
-        canvas.drawLine(seven2 * 1.0f, seven2 * 7.0f, seven2 * 05.0f, seven2 * 07.0f, boardPaint);
+    private PieceRemoveListener pieceRemoveListener = new PieceRemoveListener() {
+        @Override
+        public void onPieceRemoved(int index) {
+            pieces[index].animateRemove();
+        }
+    };
 
-        Markers.BLACK.draw(canvas, ~0, seven);
-        for (int index = 0; index < 24; index++) {
-            if (null != piece[index]) {
-                piece[index].draw(canvas, seven);
+    private PieceMoveListener pieceMoveListener = new PieceMoveListener() {
+        @Override
+        public void onPieceMoved(int fromIndex, int toIndex) {
+            pieces[toIndex] = pieces[fromIndex];
+            pieces[toIndex].animateMove(Dimensions.getPoint(toIndex));
+        }
+    };
+
+    public class RenderThread extends Thread {
+        private SurfaceHolder holder;
+
+        public RenderThread(SurfaceHolder holder) {
+            this.holder = holder;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                Canvas canvas = holder.lockCanvas();
+                if (canvas != null) {
+                    canvas.drawColor(0xFF_FFFFFF);
+
+                    dimensions = Dimensions.calculate(canvas.getWidth(), canvas.getHeight(), dimensions);
+                    canvas.translate(dimensions.getOffsetX(), dimensions.getOffsetY());
+                    backgroundDrawable.setBounds(0, 0, dimensions.getSize(), dimensions.getSize());
+                    backgroundDrawable.draw(canvas);
+
+                    float size = dimensions.getSize();
+                    float seven = size / 7.0f;
+                    float seven2 = size / 14.0f;
+
+                    boardPaint.setStrokeWidth(size / 100.0f);
+
+                    canvas.drawRect(seven2 * 1.0f, seven2 * 1.0f, seven2 * 13.0f, seven2 * 13.0f, boardPaint);
+                    canvas.drawRect(seven2 * 3.0f, seven2 * 3.0f, seven2 * 11.0f, seven2 * 11.0f, boardPaint);
+                    canvas.drawRect(seven2 * 5.0f, seven2 * 5.0f, seven2 * 09.0f, seven2 * 09.0f, boardPaint);
+                    canvas.drawLine(seven2 * 7.0f, seven2 * 1.0f, seven2 * 07.0f, seven2 * 05.0f, boardPaint);
+                    canvas.drawLine(seven2 * 9.0f, seven2 * 7.0f, seven2 * 13.0f, seven2 * 07.0f, boardPaint);
+                    canvas.drawLine(seven2 * 7.0f, seven2 * 9.0f, seven2 * 07.0f, seven2 * 13.0f, boardPaint);
+                    canvas.drawLine(seven2 * 1.0f, seven2 * 7.0f, seven2 * 05.0f, seven2 * 07.0f, boardPaint);
+
+                    Markers.BLACK.draw(canvas, ~0, seven);
+                    for (int index = 0; index < 24; index++) {
+                        if (null != pieces[index]) {
+                            pieces[index].draw(canvas, seven);
+                        }
+                    }
+                } else {
+                    break;
+                }
+                holder.unlockCanvasAndPost(canvas);
+
+                try {
+                    Thread.sleep(33);
+                } catch (Exception ignored) {
+                }
             }
         }
-    }
-
-    @Deprecated
-    public void tryPlace(int to, boolean player) throws IllegalMoveException {
-        if (!rules.isFreeSpot(to)) {
-            throw new IllegalMoveException("illegal placement!");
-        } else {
-            if (player) {
-                piece[to] = new Piece(trueDrawable);
-            } else {
-                piece[to] = new Piece(falseDrawable);
-            }
-            piece[to].animateMove(Dimensions.getPoint(to));
-            rules.add(true, to);
-        }
-    }
-
-    public void placePiece(int to, boolean player) {
-        if (player) {
-            piece[to] = new Piece(trueDrawable);
-        } else {
-            piece[to] = new Piece(falseDrawable);
-        }
-        piece[to].animateMove(Dimensions.getPoint(to));
-        rules.add(player, to);
-    }
-
-    private void movePiece(int to, int from) {
-        piece[to] = piece[from];
-        piece[from] = null;
-        piece[to].animateMove(Dimensions.getPoint(to));
-    }
-
-    private void removePiece(int from){
-        piece[from].animateRemove();
-        piece[from] = null;
     }
 }
