@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        saveGame("Autosave");
         Log.e("Activity", "onPause");
     }
 
@@ -83,5 +84,9 @@ public class MainActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void saveGame(String name) {
+
     }
 }

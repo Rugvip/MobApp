@@ -3,6 +3,7 @@ package se.kth.oberg.matn.merrills;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,14 +23,24 @@ public class WelcomeActivity extends Activity {
 
     public void newGameListener(View view) {
         Toast.makeText(this, "You get a toast!", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this,MainActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("loadFile", false);
         startActivity(intent);
     }
 
     public void loadGameListener(View view) {
-        Toast.makeText(this, "You get another toast!", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this,MainActivity.class);
-        startActivity(intent);
+//        Toast.makeText(this, "You get another toast!", Toast.LENGTH_SHORT).show();
+//        Intent intent = new Intent(this, MainActivity.class);
+//        intent.putExtra("loadFile", true);
+//        startActivity(intent);
+        DatabaseConnection db = new DatabaseConnection(this);
+        db.open();
+        db.saveGame("asdasd", 00011110, 11100001, 4, 4, 1);
+        db.saveGame("dasdasda", 00011110, 11100001, 4, 4, 1);
+        SavedGameState save = db.loadGame(1);
+        db.close();
+        Log.d("lol", "" + save.getName());
+        Toast.makeText(this, "LOOL" + save.getName(), Toast.LENGTH_LONG).show();
     }
 
     @Override
