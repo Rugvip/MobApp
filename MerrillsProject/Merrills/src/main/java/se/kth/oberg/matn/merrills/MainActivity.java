@@ -8,8 +8,10 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
+import se.kth.oberg.matn.merrills.game.Game;
+
 public class MainActivity extends Activity {
-    private MainSurfaceView view;
+    private BoardView view;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,8 +20,17 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        view = new MainSurfaceView(this);
+        final Game game = new Game();
+
+        view = new BoardView(this, game);
         setContentView(view);
+
+        view.setOnTouchListener(new PiecePokeListener() {
+            @Override
+            public void onPiecePoke(int id, float pieceX, float pieceY) {
+                game.doPosition(id);
+            }
+        });
     }
 
     @Override
