@@ -45,6 +45,7 @@ public class GameState {
                 turnType = TurnType.CHOOSE_FROM;
             }
         }
+        notifyTurnType();
     }
 
     private void doPlace(int index) {
@@ -60,6 +61,7 @@ public class GameState {
 
             if (remove) {
                 turnType = TurnType.REMOVE;
+                notifyTurnType();
             } else {
                 next();
             }
@@ -83,6 +85,7 @@ public class GameState {
             selectedIndex = index;
             notifySelected(index, true);
             turnType = TurnType.CHOOSE_TO;
+            notifyTurnType();
         }
     }
 
@@ -91,6 +94,7 @@ public class GameState {
             notifySelected(selectedIndex, false);
             selectedIndex = -1;
             turnType = TurnType.CHOOSE_FROM;
+            notifyTurnType();
         } else if (board.isPlayer(index, activePlayer)) {
             if (selectedIndex >= 0) {
                 notifySelected(selectedIndex, false);
@@ -105,6 +109,7 @@ public class GameState {
 
             if (remove) {
                 turnType = TurnType.REMOVE;
+                notifyTurnType();
             } else {
                 next();
             }
@@ -143,6 +148,12 @@ public class GameState {
         }
     }
 
+    private void notifyTurnType() {
+        for (TurnListener listener : turnListeners) {
+            listener.onTurn(activePlayer, turnType);
+        }
+    }
+
     private List<PieceMoveListener> moveListeners = new ArrayList<>();
 
     public void addPieceMoveListener(PieceMoveListener listener) {
@@ -177,5 +188,14 @@ public class GameState {
     }
     public void removePieceSelectListener(PieceSelectListener listener) {
         selectListeners.remove(listener);
+    }
+
+    private List<TurnListener> turnListeners = new ArrayList<>();
+
+    public void addTurnListener(TurnListener listener) {
+        turnListeners.add(listener);
+    }
+    public void removeTurnListener(TurnListener listener) {
+        turnListeners.remove(listener);
     }
 }
