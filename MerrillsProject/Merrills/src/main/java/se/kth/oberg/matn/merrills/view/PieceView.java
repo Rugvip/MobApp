@@ -1,4 +1,4 @@
-package se.kth.oberg.matn.merrills;
+package se.kth.oberg.matn.merrills.view;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
@@ -8,7 +8,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 
-public class Piece {
+public class PieceView {
     private Drawable drawable;
     private float x;
     private float y;
@@ -22,7 +22,7 @@ public class Piece {
         selectPaint.setColor(0xFF_FFFFFF);
     }
 
-    public Piece(Drawable drawable) {
+    public PieceView(Drawable drawable) {
         this.drawable = drawable;
         x = 0;
         y = 0;

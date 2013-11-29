@@ -1,4 +1,4 @@
-package se.kth.oberg.matn.merrills;
+package se.kth.oberg.matn.merrills.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -8,12 +8,13 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
+import se.kth.oberg.matn.merrills.Dimensions;
+import se.kth.oberg.matn.merrills.Markers;
+import se.kth.oberg.matn.merrills.R;
 import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
 import se.kth.oberg.matn.merrills.game.PieceMoveListener;
@@ -21,10 +22,10 @@ import se.kth.oberg.matn.merrills.game.PieceRemoveListener;
 import se.kth.oberg.matn.merrills.game.PieceSelectListener;
 
 public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
-    private Piece[] pieces = new Piece[24];
-    private List<Piece> removedPieces = new ArrayList<>();
-    private LinkedList<Piece> trueQueue = new LinkedList<>();
-    private LinkedList<Piece> falseQueue = new LinkedList<>();
+    private PieceView[] pieces = new PieceView[24];
+    private List<PieceView> removedPieces = new ArrayList<>();
+    private LinkedList<PieceView> trueQueue = new LinkedList<>();
+    private LinkedList<PieceView> falseQueue = new LinkedList<>();
     private Thread mainThread;
     private GameState gameState;
     private Drawable backgroundDrawable;
@@ -54,8 +55,8 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         gameState.addPieceSelectListener(pieceSelectListener);
 
         for (int i = 0; i < 9; i++) {
-            Piece truePiece = new Piece(trueDrawable);
-            Piece falsePiece = new Piece(falseDrawable);
+            PieceView truePiece = new PieceView(trueDrawable);
+            PieceView falsePiece = new PieceView(falseDrawable);
             truePiece.setX(1 + i * 0.2f);
             truePiece.setY(7.5f);
             falsePiece.setX(6 - i * 0.2f);
@@ -161,13 +162,13 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                     Markers.BLACK.draw(canvas, ~0, seven);
 
                     synchronized (trueQueue) {
-                        for (Piece piece : trueQueue) {
+                        for (PieceView piece : trueQueue) {
                             piece.draw(canvas, seven);
                         }
                     }
 
                     synchronized (falseQueue) {
-                        for (Piece piece : falseQueue) {
+                        for (PieceView piece : falseQueue) {
                             piece.draw(canvas, seven);
                         }
                     }
@@ -179,7 +180,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                     }
 
                     synchronized (removedPieces) {
-                        for (Piece piece : removedPieces) {
+                        for (PieceView piece : removedPieces) {
                             piece.draw(canvas, seven);
                         }
                     }

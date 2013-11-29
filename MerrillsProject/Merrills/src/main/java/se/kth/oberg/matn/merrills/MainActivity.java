@@ -9,6 +9,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import se.kth.oberg.matn.merrills.game.GameState;
+import se.kth.oberg.matn.merrills.view.BoardView;
 
 public class MainActivity extends Activity {
     private BoardView view;
