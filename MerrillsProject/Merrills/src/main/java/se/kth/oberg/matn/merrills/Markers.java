@@ -5,22 +5,37 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 
 public enum Markers {
-    GREEN, BLACK;
+    GREEN, BLACK, CROSS {
+        @Override
+        public void drawSingle(Canvas canvas, float x, float y, float seven) {
+            float seven20 = seven / 10.0f;
+            this.paint.setStrokeWidth(seven / 20.0f);
+            canvas.drawLine(x - seven20, y - seven20, x + seven20, y + seven20, this.paint);
+            canvas.drawLine(x - seven20, y + seven20, x + seven20, y - seven20, this.paint);
+        }
+    };
 
     private final Paint paint = new Paint();
     static {
         GREEN.paint.setColor(0xFF00BB00);
         BLACK.paint.setColor(0xFF000000);
+        CROSS.paint.setColor(0xFFFF0000);
+    }
+
+    public void drawSingle(Canvas canvas, float x, float y, float seven) {
+        canvas.drawCircle(x, y, seven / 10.0f, paint);
     }
 
     public void draw(Canvas canvas, int mask, float seven) {
+        if (mask == 0) {
+            return;
+        }
         for (int i = 0; i < 24; i++) {
             PointF pos = positions[i];
             if (((1 << i) & mask) != 0) {
-                canvas.drawCircle(pos.x * seven, pos.y * seven, seven / 10.0f, paint);
+                drawSingle(canvas, pos.x * seven, pos.y * seven, seven);
             }
         }
-        PointF p = new PointF(0, 0);
     }
 
     private static final PointF[] positions = new PointF[] {

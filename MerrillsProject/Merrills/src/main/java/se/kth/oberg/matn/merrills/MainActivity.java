@@ -9,10 +9,12 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import se.kth.oberg.matn.merrills.game.GameState;
+import se.kth.oberg.matn.merrills.game.SavedGameState;
 import se.kth.oberg.matn.merrills.view.BoardView;
 
 public class MainActivity extends Activity {
     private BoardView view;
+    private final GameState gameState = new GameState();;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,12 +23,19 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        final GameState gameState = new GameState();
-
         new GameLogger(gameState);
 
         view = new BoardView(this, gameState);
         setContentView(view);
+
+        if (savedInstanceState != null) {
+            long savedGameState = savedInstanceState.getLong(SavedGameState.BUNDLE_NAME);
+            Log.i("Load", Long.toBinaryString(savedGameState));
+            gameState.load(savedGameState);
+            view.load(savedGameState);
+        } else {
+            view.reset();
+        }
 
         view.setOnTouchListener(new PiecePokeListener() {
             @Override
@@ -34,6 +43,13 @@ public class MainActivity extends Activity {
                 gameState.doPosition(id);
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.i("Saved", Long.toBinaryString(gameState.save()));
+        outState.putLong(SavedGameState.BUNDLE_NAME, gameState.save());
     }
 
     @Override

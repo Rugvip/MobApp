@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
+import se.kth.oberg.matn.merrills.game.SavedGameState;
 
 public class DatabaseConnection {
 
@@ -13,11 +13,7 @@ public class DatabaseConnection {
     private String[] columns = {
             DatabaseHelper.COLUMN_ID,
             DatabaseHelper.COLUMN_NAME,
-            DatabaseHelper.COLUMN_TRUEMASK,
-            DatabaseHelper.COLUMN_FALSEMASK,
-            DatabaseHelper.COLUMN_TRUECOUNT,
-            DatabaseHelper.COLUMN_FALSECOUNT,
-            DatabaseHelper.COLUMN_TURN
+            DatabaseHelper.COLUMN_STATE_MASK
     };
 
     public DatabaseConnection(Context context) {
@@ -37,35 +33,23 @@ public class DatabaseConnection {
         database.execSQL(DatabaseHelper.DATABASE_CREATE);
     }
 
-    public void saveGame(String name, int trueMask, int falseMask, int trueCount, int falseCount, int turn) {
+    public void saveGame(String name, long savedGameState) {
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COLUMN_NAME, name);
-        values.put(DatabaseHelper.COLUMN_TRUEMASK, trueMask);
-        values.put(DatabaseHelper.COLUMN_FALSEMASK, falseMask);
-        values.put(DatabaseHelper.COLUMN_TRUECOUNT, trueCount);
-        values.put(DatabaseHelper.COLUMN_FALSECOUNT, falseCount);
-        values.put(DatabaseHelper.COLUMN_TURN, turn);
+        values.put(DatabaseHelper.COLUMN_STATE_MASK, savedGameState);
         database.insert(DatabaseHelper.TABLE_NAME, null, values);
     }
 
-    public SavedGameState loadGame(int id) {
+    public long loadGame(int id) {
         Cursor cursor = database.query(DatabaseHelper.TABLE_NAME,
                 columns, DatabaseHelper.COLUMN_ID + "=" + id, null, null, null, null);
         cursor.moveToFirst();
-        SavedGameState save = cursorToSave(cursor);
+        long save = cursorToSave(cursor);
         cursor.close();
         return save;
     }
 
-    private SavedGameState cursorToSave(Cursor cursor) {
-        return new SavedGameState(
-                cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ID)),
-                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_NAME)),
-                cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_TURN)),
-                cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_TRUEMASK)),
-                cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_FALSEMASK)),
-                cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_TRUECOUNT)),
-                cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_FALSECOUNT))
-        );
+    private long cursorToSave(Cursor cursor) {
+        return cursor.getLong(cursor.getColumnIndex(DatabaseHelper.COLUMN_STATE_MASK));
     }
 }

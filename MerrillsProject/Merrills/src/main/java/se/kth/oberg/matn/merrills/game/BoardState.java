@@ -145,4 +145,48 @@ public class BoardState {
         remove(fromIndex);
         return add(toIndex, playerType == TRUE_PLAYER);
     }
+
+    public int getPlayerMask(boolean player) {
+        return player ? truePlayer : falsePlayer;
+    }
+
+    public void setPlayerMask(boolean player, int mask) {
+        if (player) {
+            truePlayer = mask;
+        } else {
+            falsePlayer = mask;
+        }
+    }
+
+    private final static int millTable[] = new int[] {
+        0b000000000000000001001001,
+        0b000000000000000010010010,
+        0b000000000000000100100100,
+        0b000000000001001001000000,
+        0b000000000010010010000000,
+        0b000000000100100100000000,
+        0b000001001001000000000000,
+        0b000010010010000000000000,
+        0b000100100100000000000000,
+        0b001001000000000000000001,
+        0b010010000000000000000010,
+        0b100100000000000000000100,
+        0b000000000000000000111000,
+        0b000000000000111000000000,
+        0b000000111000000000000000,
+        0b111000000000000000000000
+    };
+
+    public int getRemoveable(boolean activePlayer) {
+        int ret = activePlayer ? truePlayer : falsePlayer;
+
+        for (int i = 0; i < millTable.length; i++) {
+            int mask = millTable[i];
+            if (((ret & mask) ^ mask) == 0) {
+                ret &= ~mask;
+            }
+        }
+
+        return ret;
+    }
 }

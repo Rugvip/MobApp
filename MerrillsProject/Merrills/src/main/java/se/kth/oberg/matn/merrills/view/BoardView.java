@@ -3,6 +3,7 @@ package se.kth.oberg.matn.merrills.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -15,6 +16,7 @@ import java.util.List;
 import se.kth.oberg.matn.merrills.Dimensions;
 import se.kth.oberg.matn.merrills.Markers;
 import se.kth.oberg.matn.merrills.R;
+import se.kth.oberg.matn.merrills.game.SavedGameState;
 import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
 import se.kth.oberg.matn.merrills.game.PieceMoveListener;
@@ -41,6 +43,59 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         boardPaint.setColor(0xFF_000000);
     }
 
+    public void load(long savedGameState) {
+        boolean activePlayer = SavedGameState.getActivePlayer(savedGameState);
+        int trueCount = SavedGameState.getTrueCount(savedGameState);
+        int falseCount = SavedGameState.getFalseCount(savedGameState);
+        int trueMask = SavedGameState.getTrueMask(savedGameState);
+        int falseMask = SavedGameState.getFalseMask(savedGameState);
+        Log.d("BoardView", "Loaded: " + activePlayer + " " + trueCount + " " + falseCount + " " + Integer.toBinaryString(trueMask) + " " + Integer.toBinaryString(falseMask));
+
+        for (int i = 0; i < trueCount; i++) {
+            PieceView truePiece = new PieceView(trueDrawable);
+            truePiece.setX(1 + i * 0.2f);
+            truePiece.setY(7.5f);
+            trueQueue.add(truePiece);
+        }
+        for (int i = 0; i < falseCount; i++) {
+            PieceView falsePiece = new PieceView(falseDrawable);
+            falsePiece.setX(6 - i * 0.2f);
+            falsePiece.setY(7.5f);
+            falseQueue.add(falsePiece);
+        }
+        for (int i = 0; i < 24; i++) {
+            PieceView piece = null;
+            if (((1 << i) & trueMask) != 0) {
+                piece = new PieceView(trueDrawable);
+            }
+            if (((1 << i) & falseMask) != 0) {
+                piece = new PieceView(falseDrawable);
+            }
+            if (piece != null) {
+                PointF point = Dimensions.getPoint(i);
+                piece.setX(point.x);
+                piece.setY(point.y);
+                pieces[i] = piece;
+            }
+        }
+
+        turnString = TurnType.PLACE.toString();
+        turnPaint = activePlayer ? trueTurnPaint : falseTurnPaint;
+    }
+
+    public void reset() {
+        for (int i = 0; i < 9; i++) {
+            PieceView truePiece = new PieceView(trueDrawable);
+            PieceView falsePiece = new PieceView(falseDrawable);
+            truePiece.setX(1 + i * 0.2f);
+            truePiece.setY(7.5f);
+            falsePiece.setX(6 - i * 0.2f);
+            falsePiece.setY(7.5f);
+            trueQueue.add(truePiece);
+            falseQueue.add(falsePiece);
+        }
+    }
+
     public BoardView(Context context, GameState gameState) {
         super(context);
 
@@ -57,16 +112,6 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         gameState.addPieceSelectListener(pieceSelectListener);
         gameState.addTurnListener(turnListener);
 
-        for (int i = 0; i < 9; i++) {
-            PieceView truePiece = new PieceView(trueDrawable);
-            PieceView falsePiece = new PieceView(falseDrawable);
-            truePiece.setX(1 + i * 0.2f);
-            truePiece.setY(7.5f);
-            falsePiece.setX(6 - i * 0.2f);
-            falsePiece.setY(7.5f);
-            trueQueue.add(truePiece);
-            falseQueue.add(falsePiece);
-        }
     }
 
     @Override
@@ -206,7 +251,9 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                     }
 
                     synchronized (gameState) {
-                        Markers.GREEN.draw(canvas, gameState.getSelectionMoves(), seven);
+                        Markers.GREEN.draw(canvas, gameState.getSelectionMoveMask(), seven);
+                        Markers.GREEN.draw(canvas, gameState.getMoveMask(), seven);
+                        Markers.BLACK.draw(canvas, gameState.getDeleteMask(), seven);
                     }
 
                     if (turnString != null) {

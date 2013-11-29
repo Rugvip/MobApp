@@ -11,21 +11,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_NAME = "games";
     public static final String COLUMN_ID = "gameId";
     public static final String COLUMN_NAME = "gameName";
-    public static final String COLUMN_TRUEMASK = "trueMask";
-    public static final String COLUMN_FALSEMASK = "falseMask";
-    public static final String COLUMN_TRUECOUNT = "trueCount";
-    public static final String COLUMN_FALSECOUNT = "falseCount";
-    public static final String COLUMN_TURN = "turn";
+    public static final String COLUMN_STATE_MASK = "stateMask";
 
     public static final String DATABASE_CREATE = "create table "
             + TABLE_NAME + "("
             + COLUMN_ID + " integer primary key autoincrement, "
-            + COLUMN_NAME + " text not null, "
-            + COLUMN_TRUEMASK + " integer not null, "
-            + COLUMN_FALSEMASK + " integer not null, "
-            + COLUMN_TRUECOUNT + " integer not null, "
-            + COLUMN_FALSECOUNT + " integer not null, "
-            + COLUMN_TURN + " integer not null "
+            + COLUMN_NAME + " text not null "
             + ");";
 
     public DatabaseHelper(Context context) {

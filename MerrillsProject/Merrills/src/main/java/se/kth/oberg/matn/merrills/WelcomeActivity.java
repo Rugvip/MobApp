@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+import se.kth.oberg.matn.merrills.game.SavedGameState;
 
 public class WelcomeActivity extends Activity {
     DatabaseConnection db = new DatabaseConnection(this);
@@ -43,12 +44,11 @@ public class WelcomeActivity extends Activity {
 //        startActivity(intent);
 
         db.open();
-        db.saveGame("asdasd", 00011110, 11100001, 4, 4, 1);
-        db.saveGame("dasdasda", 00011110, 11100001, 4, 4, 1);
-        SavedGameState save = db.loadGame(1);
+        db.saveGame("asdasd", 346346345345L);
+        db.saveGame("dasdasda", 246723572457L);
+        long save = db.loadGame(1);
         db.close();
-        Log.d("lol", "" + save.getName());
-        Toast.makeText(this, "LOOL" + save.getName(), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "LOOL", Toast.LENGTH_LONG).show();
     }
 
     @Override

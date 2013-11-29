@@ -1,10 +1,11 @@
 package se.kth.oberg.matn.merrills.game;
 
+import android.os.Bundle;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameState {
-
     private boolean activePlayer = true;
     private TurnType turnType = TurnType.PLACE;
 
@@ -116,12 +117,39 @@ public class GameState {
         }
     }
 
-    public int getSelectionMoves() {
+    public int getSelectionMoveMask() {
         if (selectedIndex < 0) {
             return 0;
-        } else {
-            return board.getAvailableMoves(selectedIndex);
         }
+        return board.getAvailableMoves(selectedIndex);
+    }
+
+    public int getMoveMask() {
+        if (turnType != TurnType.CHOOSE_FROM) {
+            return 0;
+        }
+        return board.getAvailableMoves(activePlayer);
+    }
+
+    public int getDeleteMask() {
+        if (turnType != TurnType.REMOVE) {
+            return 0;
+        }
+        return board.getRemoveable(!activePlayer);
+    }
+
+    public void load(long savedGameState) {
+        activePlayer = SavedGameState.getActivePlayer(savedGameState);
+        trueCount = SavedGameState.getTrueCount(savedGameState);
+        falseCount = SavedGameState.getFalseCount(savedGameState);
+        board.setPlayerMask(true, SavedGameState.getTrueMask(savedGameState));
+        board.setPlayerMask(false, SavedGameState.getFalseMask(savedGameState));
+
+        turnType = (activePlayer ? trueCount > 0 : falseCount > 0) ? TurnType.PLACE : TurnType.CHOOSE_FROM;
+    }
+
+    public long save() {
+        return SavedGameState.mask(activePlayer, board.getPlayerMask(true), board.getPlayerMask(false), trueCount, falseCount);
     }
 
     private void notifyMoved(int from, int to) {
