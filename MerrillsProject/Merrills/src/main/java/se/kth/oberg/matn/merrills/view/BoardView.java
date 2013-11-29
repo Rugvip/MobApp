@@ -20,6 +20,8 @@ import se.kth.oberg.matn.merrills.game.PieceAddListener;
 import se.kth.oberg.matn.merrills.game.PieceMoveListener;
 import se.kth.oberg.matn.merrills.game.PieceRemoveListener;
 import se.kth.oberg.matn.merrills.game.PieceSelectListener;
+import se.kth.oberg.matn.merrills.game.TurnListener;
+import se.kth.oberg.matn.merrills.game.TurnType;
 
 public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
     private PieceView[] pieces = new PieceView[24];
@@ -53,6 +55,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         gameState.addPieceRemoveListener(pieceRemoveListener);
         gameState.addPieceMoveListener(pieceMoveListener);
         gameState.addPieceSelectListener(pieceSelectListener);
+        gameState.addTurnListener(turnListener);
 
         for (int i = 0; i < 9; i++) {
             PieceView truePiece = new PieceView(trueDrawable);
@@ -126,6 +129,23 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         }
     };
 
+    private String turnString;
+    private static final Paint trueTurnPaint = new Paint();
+    private static final Paint falseTurnPaint = new Paint();
+    static {
+        falseTurnPaint.setColor(0xFF_0000FF);
+        trueTurnPaint.setColor(0xFF_FF0000);
+    }
+    private Paint turnPaint;
+
+    private TurnListener turnListener = new TurnListener() {
+        @Override
+        public void onTurn(boolean player, TurnType type) {
+            turnPaint = player ? trueTurnPaint : falseTurnPaint;
+            turnString = type.toString();
+        }
+    };
+
     public class RenderThread extends Thread {
         private SurfaceHolder holder;
 
@@ -187,6 +207,15 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
 
                     synchronized (gameState) {
                         Markers.GREEN.draw(canvas, gameState.getSelectionMoves(), seven);
+                    }
+
+                    if (turnString != null) {
+                        synchronized (turnString) {
+                            turnPaint.setStrokeWidth(0.2f * seven);
+                            turnPaint.setTextSize(seven * 0.5f);
+                            turnPaint.setTextAlign(Paint.Align.CENTER);
+                            canvas.drawText(turnString, 3.5f * seven, 8.5f * seven, turnPaint);
+                        }
                     }
                 } else {
                     break;
