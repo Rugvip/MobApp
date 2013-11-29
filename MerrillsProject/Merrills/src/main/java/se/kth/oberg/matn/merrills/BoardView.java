@@ -8,8 +8,11 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
@@ -20,12 +23,15 @@ import se.kth.oberg.matn.merrills.game.PieceSelectListener;
 public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
     private Piece[] pieces = new Piece[24];
     private List<Piece> removedPieces = new ArrayList<>();
+    private LinkedList<Piece> trueQueue = new LinkedList<>();
+    private LinkedList<Piece> falseQueue = new LinkedList<>();
     private Thread mainThread;
     private GameState gameState;
     private Drawable backgroundDrawable;
     private Drawable trueDrawable;
     private Drawable falseDrawable;
     private Dimensions dimensions;
+
     private static Paint boardPaint = new Paint();
     static {
         boardPaint.setStyle(Paint.Style.STROKE);
@@ -46,12 +52,23 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         gameState.addPieceRemoveListener(pieceRemoveListener);
         gameState.addPieceMoveListener(pieceMoveListener);
         gameState.addPieceSelectListener(pieceSelectListener);
+
+        for (int i = 0; i < 9; i++) {
+            Piece truePiece = new Piece(trueDrawable);
+            Piece falsePiece = new Piece(falseDrawable);
+            truePiece.setX(1 + i * 0.2f);
+            truePiece.setY(7.5f);
+            falsePiece.setX(6 - i * 0.2f);
+            falsePiece.setY(7.5f);
+            trueQueue.add(truePiece);
+            falseQueue.add(falsePiece);
+        }
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         Log.e("Holder.Callback", "surfaceCreated");
-        mainThread = new RenderThread(getHolder());
+        mainThread = new RenderThread(surfaceHolder);
         mainThread.start();
     }
 
@@ -69,15 +86,25 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
     private PieceAddListener pieceAddListener = new PieceAddListener() {
         @Override
         public void onPieceAdded(boolean player, int index) {
-            pieces[index] = new Piece(player ? trueDrawable : falseDrawable);
-            pieces[index].animateSpawn(Dimensions.getPoint(index));
+            if (player) {
+                synchronized (trueQueue) {
+                    pieces[index] = trueQueue.removeLast();
+                }
+            } else {
+                synchronized (falseQueue) {
+                    pieces[index] = falseQueue.removeLast();
+                }
+            }
+            pieces[index].animateMove(Dimensions.getPoint(index));
         }
     };
 
     private PieceRemoveListener pieceRemoveListener = new PieceRemoveListener() {
         @Override
         public void onPieceRemoved(int index) {
-            removedPieces.add(pieces[index]);
+            synchronized (removedPieces) {
+                removedPieces.add(pieces[index]);
+            }
             pieces[index].animateRemove();
             pieces[index] = null;
         }
@@ -132,17 +159,34 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                     canvas.drawLine(seven2 * 1.0f, seven2 * 7.0f, seven2 * 05.0f, seven2 * 07.0f, boardPaint);
 
                     Markers.BLACK.draw(canvas, ~0, seven);
+
+                    synchronized (trueQueue) {
+                        for (Piece piece : trueQueue) {
+                            piece.draw(canvas, seven);
+                        }
+                    }
+
+                    synchronized (falseQueue) {
+                        for (Piece piece : falseQueue) {
+                            piece.draw(canvas, seven);
+                        }
+                    }
+
                     for (int index = 0; index < 24; index++) {
                         if (null != pieces[index]) {
                             pieces[index].draw(canvas, seven);
                         }
                     }
 
-                    for (Piece piece : removedPieces) {
-                        piece.draw(canvas, seven);
+                    synchronized (removedPieces) {
+                        for (Piece piece : removedPieces) {
+                            piece.draw(canvas, seven);
+                        }
                     }
 
-                    Markers.GREEN.draw(canvas, gameState.getSelectionMoves(), seven);
+                    synchronized (gameState) {
+                        Markers.GREEN.draw(canvas, gameState.getSelectionMoves(), seven);
+                    }
                 } else {
                     break;
                 }
