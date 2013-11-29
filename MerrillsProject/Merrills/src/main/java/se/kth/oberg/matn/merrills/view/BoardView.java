@@ -253,7 +253,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                     synchronized (gameState) {
                         Markers.GREEN.draw(canvas, gameState.getSelectionMoveMask(), seven);
                         Markers.GREEN.draw(canvas, gameState.getMoveMask(), seven);
-                        Markers.BLACK.draw(canvas, gameState.getDeleteMask(), seven);
+                        Markers.CROSS.draw(canvas, gameState.getDeleteMask(), seven);
                     }
 
                     if (turnString != null) {

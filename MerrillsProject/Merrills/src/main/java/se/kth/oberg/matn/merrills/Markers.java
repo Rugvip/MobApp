@@ -8,14 +8,14 @@ public enum Markers {
     GREEN, BLACK, CROSS {
         @Override
         public void drawSingle(Canvas canvas, float x, float y, float seven) {
-            float seven20 = seven / 10.0f;
-            this.paint.setStrokeWidth(seven / 20.0f);
-            canvas.drawLine(x - seven20, y - seven20, x + seven20, y + seven20, this.paint);
-            canvas.drawLine(x - seven20, y + seven20, x + seven20, y - seven20, this.paint);
+            float seven7 = seven / 7.0f;
+            paint.setStrokeWidth(seven / 20.0f);
+            canvas.drawLine(x - seven7, y - seven7, x + seven7, y + seven7, paint);
+            canvas.drawLine(x - seven7, y + seven7, x + seven7, y - seven7, paint);
         }
     };
 
-    private final Paint paint = new Paint();
+    public final Paint paint = new Paint();
     static {
         GREEN.paint.setColor(0xFF00BB00);
         BLACK.paint.setColor(0xFF000000);
