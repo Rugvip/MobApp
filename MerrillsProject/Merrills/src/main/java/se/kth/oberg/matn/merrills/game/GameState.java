@@ -38,7 +38,12 @@ public class GameState {
         if (count > 0) {
             turnType = TurnType.PLACE;
         } else {
-            turnType = TurnType.CHOOSE_FROM;
+            if (board.hasLost(activePlayer)) {
+                turnType = TurnType.WIN;
+                activePlayer = !activePlayer;
+            } else {
+                turnType = TurnType.CHOOSE_FROM;
+            }
         }
     }
 
