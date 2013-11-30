@@ -1,118 +1,121 @@
 package se.kth.oberg.matn.merrills.game;
 
-import android.os.Bundle;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameState {
-    private boolean activePlayer = true;
-    private TurnType turnType = TurnType.PLACE;
-
-    private BoardState board = new BoardState();
     private int selectedIndex = -1;
-    private int trueCount = 9;
-    private int falseCount = 9;
+    private long state;
 
-    public void doPosition(int index) {
-        switch (turnType) {
-            case PLACE:
-                doPlace(index);
-                break;
-            case REMOVE:
-                doRemove(index);
-                break;
-            case CHOOSE_FROM:
-                doFrom(index);
-                break;
-            case CHOOSE_TO:
-                doTo(index);
-                break;
-            case WIN:
-                break;
-        }
+    public GameState() {
+        state = Board.createBoard(false, true);
+        Log.i("new board", Long.toBinaryString(state | (1L << 63)));
+        Log.i("new board", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
     }
 
-    private void next() {
-        activePlayer = !activePlayer;
-        int count = activePlayer ? trueCount : falseCount;
-        if (count > 0) {
-            turnType = TurnType.PLACE;
-        } else {
-            if (board.hasLost(activePlayer)) {
-                turnType = TurnType.WIN;
-                activePlayer = !activePlayer;
-            } else {
-                turnType = TurnType.CHOOSE_FROM;
-            }
+    public void doPosition(int index) {
+        Log.i("doPosition", Long.toBinaryString(state | (1L << 63)));
+        Log.i("doPosition", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+        switch (Board.getCurrentAction(state)) {
+            case Board.ACTION_PLACE:
+                doPlace(index);
+                break;
+            case Board.ACTION_MOVE:
+                doMove(index);
+                break;
+            case Board.ACTION_REMOVE:
+                doRemove(index);
+                break;
+            case Board.ACTION_WON:
+                break;
+            default:
+                throw new IllegalStateException("unknown action");
         }
-        notifyTurnType();
     }
 
     private void doPlace(int index) {
-        if (board.isFreeSpot(index)) {
-            boolean remove = board.add(index, activePlayer);
-            notifyAdded(activePlayer, index);
+        Log.i("doPlace", "index: " + index);
+        if (Board.isAvailablePlacement(state, index)) {
+            notifyAdded(Board.getActivePlayer(state), index);
+            state = Board.place(state, index);
 
-            if (activePlayer) {
-                --trueCount;
-            } else {
-                --falseCount;
+            switch (Board.getCurrentAction(state)) {
+                case Board.ACTION_REMOVE:
+                    notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
+                    break;
+                case Board.ACTION_MOVE:
+                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
+                    break;
+                case Board.ACTION_PLACE:
+                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
+                    break;
+                case Board.ACTION_WON:
+                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
+                    break;
+                default:
+                    throw new IllegalStateException("unknown action");
             }
+        }
+    }
 
-            if (remove) {
-                turnType = TurnType.REMOVE;
-                notifyTurnType();
-            } else {
-                next();
+    private void doMove(int index) {
+        Log.i("doMove", "index: " + index);
+        if (Board.isPlayer(state, index, true)) {
+            if (selectedIndex >= 0) {
+                notifySelected(selectedIndex, false);
+                if (selectedIndex == index) {
+                    selectedIndex = -1;
+                    return;
+                }
+            }
+            selectedIndex = index;
+            notifySelected(selectedIndex, true);
+        } else if (!Board.isPlayer(state, index, false)) {
+            if (selectedIndex >= 0) {
+                if (Board.isValidMove(state, selectedIndex, index)) {
+                    state = Board.move(state, selectedIndex, index);
+                    notifySelected(selectedIndex, false);
+                    notifyMoved(selectedIndex, index);
+                    selectedIndex = -1;
+
+                    switch (Board.getCurrentAction(state)) {
+                        case Board.ACTION_REMOVE:
+                            notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
+                            break;
+                        case Board.ACTION_MOVE:
+                            notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
+                            break;
+                        case Board.ACTION_WON:
+                            notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
+                            break;
+                        default:
+                            throw new IllegalStateException("unknown action");
+                    }
+                }
             }
         }
     }
 
     private void doRemove(int index) {
-        if (board.isPlayer(index, !activePlayer)) {
-            board.remove(index);
+        Log.i("doRemove", "index: " + index);
+        if (Board.isAvailableRemove(state, index)) {
+            state = Board.remove(state, index);
             notifyRemoved(index);
 
-            next();
-        }
-    }
-
-    private void doFrom(int index) {
-        if (board.isPlayer(index, activePlayer)) {
-            if (selectedIndex >= 0) {
-                notifySelected(selectedIndex, false);
-            }
-            selectedIndex = index;
-            notifySelected(index, true);
-            turnType = TurnType.CHOOSE_TO;
-            notifyTurnType();
-        }
-    }
-
-    private void doTo(int index) {
-        if (index == selectedIndex) {
-            notifySelected(selectedIndex, false);
-            selectedIndex = -1;
-            turnType = TurnType.CHOOSE_FROM;
-            notifyTurnType();
-        } else if (board.isPlayer(index, activePlayer)) {
-            if (selectedIndex >= 0) {
-                notifySelected(selectedIndex, false);
-            }
-            selectedIndex = index;
-            notifySelected(selectedIndex, true);
-        } else if (board.isValidMove(selectedIndex, index)) {
-            notifySelected(selectedIndex, false);
-            boolean remove = board.move(selectedIndex, index);
-            notifyMoved(selectedIndex, index);
-            selectedIndex = -1;
-
-            if (remove) {
-                turnType = TurnType.REMOVE;
-                notifyTurnType();
-            } else {
-                next();
+            switch (Board.getCurrentAction(state)) {
+                case Board.ACTION_MOVE:
+                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
+                    break;
+                case Board.ACTION_PLACE:
+                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
+                    break;
+                case Board.ACTION_WON:
+                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
+                    break;
+                default:
+                    throw new IllegalStateException("unknown action");
             }
         }
     }
@@ -121,35 +124,30 @@ public class GameState {
         if (selectedIndex < 0) {
             return 0;
         }
-        return board.getAvailableMoves(selectedIndex);
+        return Board.getAvailableForPos(state, selectedIndex);
     }
 
     public int getMoveMask() {
-        if (turnType != TurnType.CHOOSE_FROM) {
+        if (selectedIndex >= 0 || Board.getCurrentAction(state) != Board.ACTION_MOVE) {
             return 0;
         }
-        return board.getAvailableMoves(activePlayer);
+        return Board.getAvailableMoves(state, true);
     }
 
     public int getDeleteMask() {
-        if (turnType != TurnType.REMOVE) {
+        if (Board.getCurrentAction(state) != Board.ACTION_REMOVE) {
             return 0;
         }
-        return board.getRemoveable(!activePlayer);
+        return Board.getAvailableRemoves(state);
     }
 
     public void load(long savedGameState) {
-        activePlayer = SavedGameState.getActivePlayer(savedGameState);
-        trueCount = SavedGameState.getTrueCount(savedGameState);
-        falseCount = SavedGameState.getFalseCount(savedGameState);
-        board.setPlayerMask(true, SavedGameState.getTrueMask(savedGameState));
-        board.setPlayerMask(false, SavedGameState.getFalseMask(savedGameState));
-
-        turnType = (activePlayer ? trueCount > 0 : falseCount > 0) ? TurnType.PLACE : TurnType.CHOOSE_FROM;
+        state = savedGameState;
+        selectedIndex = -1;
     }
 
-    public long save() {
-        return SavedGameState.mask(activePlayer, board.getPlayerMask(true), board.getPlayerMask(false), trueCount, falseCount);
+    public long getState() {
+        return state;
     }
 
     private void notifyMoved(int from, int to) {
@@ -172,11 +170,11 @@ public class GameState {
 
     private void notifySelected(int index, boolean selected) {
         for (PieceSelectListener listener : selectListeners) {
-            listener.onPieceSelect(index, selected);
+            listener.onPieceSelected(index, selected);
         }
     }
 
-    private void notifyTurnType() {
+    private void notifyTurnType(boolean activePlayer, TurnType turnType) {
         for (TurnListener listener : turnListeners) {
             listener.onTurn(activePlayer, turnType);
         }

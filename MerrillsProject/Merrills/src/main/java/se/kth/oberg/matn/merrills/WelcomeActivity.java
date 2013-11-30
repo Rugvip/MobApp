@@ -10,7 +10,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-import se.kth.oberg.matn.merrills.game.SavedGameState;
 
 public class WelcomeActivity extends Activity {
     DatabaseConnection db = new DatabaseConnection(this);

@@ -16,7 +16,7 @@ import java.util.List;
 import se.kth.oberg.matn.merrills.Dimensions;
 import se.kth.oberg.matn.merrills.Markers;
 import se.kth.oberg.matn.merrills.R;
-import se.kth.oberg.matn.merrills.game.SavedGameState;
+import se.kth.oberg.matn.merrills.game.Board;
 import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
 import se.kth.oberg.matn.merrills.game.PieceMoveListener;
@@ -44,11 +44,11 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
     }
 
     public void load(long savedGameState) {
-        boolean activePlayer = SavedGameState.getActivePlayer(savedGameState);
-        int trueCount = SavedGameState.getTrueCount(savedGameState);
-        int falseCount = SavedGameState.getFalseCount(savedGameState);
-        int trueMask = SavedGameState.getTrueMask(savedGameState);
-        int falseMask = SavedGameState.getFalseMask(savedGameState);
+        boolean activePlayer = Board.getActivePlayer(savedGameState);
+        int trueCount = Board.getTrueCount(savedGameState);
+        int falseCount = Board.getFalseCount(savedGameState);
+        int trueMask = Board.getTrueMask(savedGameState);
+        int falseMask = Board.getFalseMask(savedGameState);
         Log.d("BoardView", "Loaded: " + activePlayer + " " + trueCount + " " + falseCount + " " + Integer.toBinaryString(trueMask) + " " + Integer.toBinaryString(falseMask));
 
         for (int i = 0; i < trueCount; i++) {
@@ -169,7 +169,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
 
     private PieceSelectListener pieceSelectListener = new PieceSelectListener() {
         @Override
-        public void onPieceSelect(int index, boolean selected) {
+        public void onPieceSelected(int index, boolean selected) {
             pieces[index].setSelected(selected);
         }
     };

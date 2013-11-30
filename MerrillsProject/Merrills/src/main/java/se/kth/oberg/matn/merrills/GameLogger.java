@@ -43,7 +43,7 @@ public class GameLogger {
 
     private PieceSelectListener pieceSelectListener = new PieceSelectListener() {
         @Override
-        public void onPieceSelect(int index, boolean selected) {
+        public void onPieceSelected(int index, boolean selected) {
             Log.d("Game", "piece " + (selected ? "selected" : "deselected") + " at " + index);
         }
     };
