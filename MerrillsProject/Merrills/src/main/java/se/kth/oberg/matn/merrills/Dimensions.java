@@ -24,7 +24,7 @@ public class Dimensions {
         if (dimensions == null) {
             dimensions = new Dimensions();
         }
-        float size = width < height ? width * 9.0f / 10.0f : height * 9.0f / 10.0f;
+        float size = width < height ? width * 10.0f / 10.0f : height * 10.0f / 10.0f;
         dimensions.size = (int) size;
 
         float offsetX = (width - size) / 2.0f;

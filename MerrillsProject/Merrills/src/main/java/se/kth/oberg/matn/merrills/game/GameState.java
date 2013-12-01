@@ -15,9 +15,53 @@ public class GameState {
         Log.i("new board", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
     }
 
+    public void notifyDiff(long before, long after) {
+        if (Board.getCurrentAction(before) == Board.getCurrentAction(after)
+                && Board.getActivePlayer(before) == Board.getActivePlayer(after)) {
+            return;
+        }
+        long diff = before ^ after;
+        boolean active = Board.getActivePlayer(before);
+        switch (Board.getCurrentAction(before)) {
+            case Board.ACTION_PLACE:
+                notifyAdded(Board.getActivePlayer(before), Board.getBitIndex(Board.getPlayerMask(diff, active)));
+                break;
+            case Board.ACTION_MOVE: {
+                int from = Board.getPlayerMask(diff, active) & Board.getPlayerMask(before, active);
+                int to = Board.getPlayerMask(diff, active) & Board.getPlayerMask(after, active);
+                notifyMoved(Board.getBitIndex(from), Board.getBitIndex(to));
+                break;
+            }
+            case Board.ACTION_REMOVE:
+                notifyRemoved(Board.getBitIndex(Board.getPlayerMask(diff, !active)));
+                break;
+            case Board.ACTION_WON:
+                break;
+            default:
+                throw new IllegalStateException("unknown action");
+        }
+        switch (Board.getCurrentAction(after)) {
+            case Board.ACTION_PLACE:
+                notifyTurnType(Board.getActivePlayer(after), TurnType.PLACE);
+                break;
+            case Board.ACTION_MOVE:
+                notifyTurnType(Board.getActivePlayer(after), TurnType.CHOOSE_FROM);
+                break;
+            case Board.ACTION_REMOVE:
+                notifyTurnType(Board.getActivePlayer(after), TurnType.REMOVE);
+                break;
+            case Board.ACTION_WON:
+                notifyTurnType(Board.getActivePlayer(after), TurnType.WIN);
+                break;
+            default:
+                throw new IllegalStateException("unknown action");
+        }
+    }
+
     public void doPosition(int index) {
         Log.i("doPosition", Long.toBinaryString(state | (1L << 63)));
         Log.i("doPosition", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+        long oldState = state;
         switch (Board.getCurrentAction(state)) {
             case Board.ACTION_PLACE:
                 doPlace(index);
@@ -33,26 +77,36 @@ public class GameState {
             default:
                 throw new IllegalStateException("unknown action");
         }
+        notifyDiff(oldState, state);
+        while (Board.getActivePlayer(state) == false && Board.getCurrentAction(state) != Board.ACTION_WON) {
+            oldState = state;
+            state = Ai.makeMove(state, false);
+            Log.i("Ai", "Made move");
+            Log.i("Ai", Long.toBinaryString(oldState | (1L << 63)));
+            Log.i("Ai", Long.toBinaryString(state | (1L << 63)));
+            Log.i("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+            notifyDiff(oldState, state);
+        }
     }
 
     private void doPlace(int index) {
         Log.i("doPlace", "index: " + index);
         if (Board.isAvailablePlacement(state, index)) {
-            notifyAdded(Board.getActivePlayer(state), index);
-            state = Board.place(state, index);
+//            notifyAdded(Board.getActivePlayer(state), index);
+            state = Board.placeWithMask(state, 1 << index, true);
 
             switch (Board.getCurrentAction(state)) {
                 case Board.ACTION_REMOVE:
-                    notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
+//                    notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
                     break;
                 case Board.ACTION_MOVE:
-                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
+//                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
                     break;
                 case Board.ACTION_PLACE:
-                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
+//                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
                     break;
                 case Board.ACTION_WON:
-                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
+//                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
                     break;
                 default:
                     throw new IllegalStateException("unknown action");
@@ -74,21 +128,21 @@ public class GameState {
             notifySelected(selectedIndex, true);
         } else if (!Board.isPlayer(state, index, false)) {
             if (selectedIndex >= 0) {
-                if (Board.isValidMove(state, selectedIndex, index)) {
-                    state = Board.move(state, selectedIndex, index);
+                if (Board.isValidMove(state, selectedIndex, index, true)) {
+                    state = Board.moveWithMasks(state, 1 << selectedIndex, 1 << index, true);
                     notifySelected(selectedIndex, false);
-                    notifyMoved(selectedIndex, index);
+//                    notifyMoved(selectedIndex, index);
                     selectedIndex = -1;
 
                     switch (Board.getCurrentAction(state)) {
                         case Board.ACTION_REMOVE:
-                            notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
+//                            notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
                             break;
                         case Board.ACTION_MOVE:
-                            notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
+//                            notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
                             break;
                         case Board.ACTION_WON:
-                            notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
+//                            notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
                             break;
                         default:
                             throw new IllegalStateException("unknown action");
@@ -100,19 +154,20 @@ public class GameState {
 
     private void doRemove(int index) {
         Log.i("doRemove", "index: " + index);
-        if (Board.isAvailableRemove(state, index)) {
-            state = Board.remove(state, index);
-            notifyRemoved(index);
+        if (Board.isAvailableRemove(state, index, true)) {
+//            state = Board.remove(state, index);
+            state = Board.removeWithMask(state, 1 << index, true);
+//            notifyRemoved(index);
 
             switch (Board.getCurrentAction(state)) {
                 case Board.ACTION_MOVE:
-                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
+//                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
                     break;
                 case Board.ACTION_PLACE:
-                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
+//                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
                     break;
                 case Board.ACTION_WON:
-                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
+//                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
                     break;
                 default:
                     throw new IllegalStateException("unknown action");
@@ -124,7 +179,7 @@ public class GameState {
         if (selectedIndex < 0) {
             return 0;
         }
-        return Board.getAvailableForPos(state, selectedIndex);
+        return Board.getAvailableMovesFrom(state, selectedIndex, true);
     }
 
     public int getMoveMask() {
@@ -138,7 +193,7 @@ public class GameState {
         if (Board.getCurrentAction(state) != Board.ACTION_REMOVE) {
             return 0;
         }
-        return Board.getAvailableRemoves(state);
+        return Board.getAvailableRemoves(state, true);
     }
 
     public void load(long savedGameState) {

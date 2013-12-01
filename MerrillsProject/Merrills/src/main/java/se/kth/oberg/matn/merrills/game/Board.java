@@ -1,5 +1,7 @@
 package se.kth.oberg.matn.merrills.game;
 
+import android.util.Log;
+
 public class Board {
     private static final long MASK_MASK = 0xFFFFFFL;
     private static final int INT_MASK_MASK = 0xFFFFFF;
@@ -27,6 +29,7 @@ public class Board {
         state |= (9L << OFFSET_FALSE_COUNT);
         state = putBit(state, OFFSET_ALLOW_REMOVE_MILL, allowRemoveMill);
         state = putBit(state, OFFSET_ALLOW_FLIGHT, allowFlight);
+        state = setBit(state, OFFSET_ACTIVE_PLAYER);
         return state;
     }
 
@@ -54,27 +57,37 @@ public class Board {
         return ((state >>> offset) & 1) != 0;
     }
 
-    public static int getMaskOffset(long state, boolean active) {
+    static int getBitIndex(int mask) {
+        int index = 0;
+        index += ((mask & 0xFFFF0000) != 0) ? 16 : 0;
+        index += ((mask & 0xFF00FF00) != 0) ? 8 : 0;
+        index += ((mask & 0xF0F0F0F0) != 0) ? 4 : 0;
+        index += ((mask & 0xCCCCCCCC) != 0) ? 2 : 0;
+        index += ((mask & 0xAAAAAAAA) != 0) ? 1 : 0;
+        return index;
+    }
+
+    static int countBits(int mask) {
+        int count = 0;
+        for (;mask != 0; mask &= mask - 1) {
+            count++;
+        }
+        return count;
+    }
+
+    static int getMaskOffset(long state, boolean active) {
         return ((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) == active) ? OFFSET_TRUE : OFFSET_FALSE;
     }
 
-    public static int getTrueMask(long state) {
-        return (int) ((state >>> OFFSET_TRUE) & MASK_MASK);
+    public static int getPlayerMask(long state, boolean player) {
+        return (int) ((state >>> (player ? OFFSET_TRUE : OFFSET_FALSE)) & MASK_MASK);
     }
 
-    public static int getFalseMask(long state) {
-        return (int) ((state >>> OFFSET_FALSE) & MASK_MASK);
+    public static int getPlayerCount(long state, boolean player) {
+        return (int) ((state >>> (player ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT)) & COUNT_MASK);
     }
 
-    public static int getTrueCount(long state) {
-        return (int) ((state >>> OFFSET_TRUE_COUNT) & COUNT_MASK);
-    }
-
-    public static int getFalseCount(long state) {
-        return (int) ((state >>> OFFSET_FALSE_COUNT) & COUNT_MASK);
-    }
-
-    public static int getCount(long state, boolean active) {
+    static int getCount(long state, boolean active) {
         return (int) ((state >>> ((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) == active ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT)) & COUNT_MASK);
     }
 
@@ -82,11 +95,11 @@ public class Board {
         return ((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0;
     }
 
-    public static boolean isPlayer(long state, int index, boolean active) {
+    static boolean isPlayer(long state, int index, boolean active) {
         return getBit(state, (getActivePlayer(state) == active ? OFFSET_TRUE : OFFSET_FALSE) + index);
     }
 
-    public static int getMask(long state, boolean active) {
+    static int getMask(long state, boolean active) {
         return (int) ((state >>> (((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) == active) ? OFFSET_TRUE : OFFSET_FALSE)) & MASK_MASK);
     }
 
@@ -94,22 +107,29 @@ public class Board {
         return (int) (((state >>> OFFSET_TRUE) | (state >>> OFFSET_FALSE)) & MASK_MASK);
     }
 
-    public static int getAvailableForPos(long state, int index) {
-        if (isFlying(state)) {
+    static int getAvailableMovesFrom(long state, int index, boolean active) {
+        if (isFlying(state, active)) {
             return ~getBothMask(state);
         }
         return availableTable[index] & ~getBothMask(state);
     }
 
-    public static int getMovableTo(long state, int index) {
-        if (isFlying(state)) {
-            return getMask(state, true);
+    static int getAvailableMovesTo(long state, int index, boolean active) {
+        if (isFlying(state, active)) {
+            return getMask(state, active);
         }
-        return availableTable[index] & getMask(state, true);
+        return availableTable[index] & getMask(state, active);
+    }
+
+    static int getAvailableMovesToMask(long state, int mask, boolean active) {
+        if (isFlying(state, active)) {
+            return getMask(state, active);
+        }
+        return INT_MASK_MASK & (getMoveMask(mask) & getMask(state, active));
     }
 
     public static int getCurrentAction(long state) {
-        if (isWinner(state)) {
+        if (isWinner(state, true)) {
             return ACTION_WON;
         } else if (getBit(state, OFFSET_IS_REMOVE_TURN)) {
             return ACTION_REMOVE;
@@ -120,43 +140,49 @@ public class Board {
         }
     }
 
-    public static int getAvailablePlacements(long state) {
-        return ~getBothMask(state);
+    static int getAvailablePlacements(long state) {
+        return INT_MASK_MASK & ~getBothMask(state);
     }
 
-    public static boolean isAvailablePlacement(long state, int index) {
+    static boolean isAvailablePlacement(long state, int index) {
         return getBit(getAvailablePlacements(state), index);
     }
 
-    private static boolean isFlying(long state) {
+    private static boolean isFlying(long state, boolean active) {
         if (!getBit(state, OFFSET_ALLOW_FLIGHT)) {
             return false;
         }
-        int positions = getMask(state, true);
+        if (getCount(state, active) > 0) {
+            return false;
+        }
+        int positions = getMask(state, active);
         positions &= (positions - 1);
         positions &= (positions - 1);
         return ((positions & (positions - 1)) == 0);
     }
 
-    public static int getAvailableMoves(long state, boolean active) {
-        if (isFlying(state)) {
-            return ~getBothMask(state);
-        }
-        int positions = getMask(state, active);
+    private static int getMoveMask(int positions) {
         int ret = 0;
-        ret |= (positions << 3) | (positions >> 21);
-        ret |= (positions >> 3) | (positions << 21);
+        ret |= (positions << 3) | (positions >>> 21);
+        ret |= (positions >>> 3) | (positions << 21);
         ret |= (positions & 0b011000011000011000011000) << 1;
-        ret |= (positions & 0b110000110000110000110000) >> 1;
-        return INT_MASK_MASK & (ret & ~getBothMask(state));
+        ret |= (positions & 0b110000110000110000110000) >>> 1;
+        return ret & INT_MASK_MASK;
     }
 
-    public static boolean isValidMove(long state, int fromIndex, int toIndex) {
-        return (getMovableTo(state, toIndex) & (1 << fromIndex)) != 0;
+    static int getAvailableMoves(long state, boolean active) {
+        if (isFlying(state, active)) {
+            return INT_MASK_MASK & ~getBothMask(state);
+        }
+        return INT_MASK_MASK & (getMoveMask(getMask(state, active)) & ~getBothMask(state));
     }
 
-    public static int getAvailableRemoves(long state) {
-        int mask = getMask(state, false);
+    static boolean isValidMove(long state, int fromIndex, int toIndex, boolean active) {
+        return (getAvailableMovesTo(state, toIndex, active) & (1 << fromIndex)) != 0;
+    }
+
+    static int getAvailableRemoves(long state, boolean active) {
+        int mask = getMask(state, !active);
         int ret = mask;
 
         if (!getBit(state, OFFSET_ALLOW_REMOVE_MILL)) {
@@ -171,8 +197,8 @@ public class Board {
         return ret != 0 ? ret : mask;
     }
 
-    public static boolean isAvailableRemove(long state, int index) {
-        return getBit(getAvailableRemoves(state), index);
+    static boolean isAvailableRemove(long state, int index, boolean active) {
+        return getBit(getAvailableRemoves(state, active), index);
     }
 
     private static long switchActivePlayer(long state) {
@@ -183,59 +209,89 @@ public class Board {
         }
     }
 
-    public static long move(long state, int fromIndex, int toIndex) {
-        if (getCurrentAction(state) != ACTION_MOVE) {
-            throw new IllegalStateException("not a move turn");
-        }
+//    public static long move(long state, int fromIndex, int toIndex) {
+//        if (getCurrentAction(state) != ACTION_MOVE) {
+//            throw new IllegalStateException("not a move turn");
+//        }
+//
+//        state = clearBit(state, getMaskOffset(state, true) + fromIndex);
+//        state = setBit(state, getMaskOffset(state, true) + toIndex);
+//
+//        if (isMillMaker(state, 1 << toIndex)) {
+//            return setBit(state, OFFSET_IS_REMOVE_TURN);
+//        } else {
+//            return switchActivePlayer(state);
+//        }
+//    }
 
-        state = clearBit(state, getMaskOffset(state, true) + fromIndex);
-        state = setBit(state, getMaskOffset(state, true) + toIndex);
+    static long moveWithMasks(long state, int fromMask, int toMask, boolean active) {
+        state &= ~(((long) fromMask) << getMaskOffset(state, active));
+        state |= (((long) toMask) << getMaskOffset(state, active));
 
-        if (isMillMaker(state, toIndex)) {
+        if (isMillMaker(state, toMask, active)) {
             return setBit(state, OFFSET_IS_REMOVE_TURN);
         } else {
             return switchActivePlayer(state);
         }
     }
 
-    public static long place(long state, int index) {
-        if (getCurrentAction(state) != ACTION_PLACE) {
-            throw new IllegalStateException("not a place turn");
-        }
+//    public static long place(long state, int index) {
+//        if (getCurrentAction(state) != ACTION_PLACE) {
+//            throw new IllegalStateException("not a place turn");
+//        }
+//
+//        state = setBit(state, getMaskOffset(state, true) + index);
+//        state -= (1L << ((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT));
+//
+//        if (isMillMaker(state, 1 << index)) {
+//            return setBit(state, OFFSET_IS_REMOVE_TURN);
+//        } else {
+//            return switchActivePlayer(state);
+//        }
+//    }
 
-        state = setBit(state, getMaskOffset(state, true) + index);
+    static long placeWithMask(long state, int mask, boolean active) {
+        state |= (((long) mask) << getMaskOffset(state, active));
         state -= (1L << ((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT));
 
-        if (isMillMaker(state, index)) {
+        if (isMillMaker(state, mask, active)) {
             return setBit(state, OFFSET_IS_REMOVE_TURN);
         } else {
             return switchActivePlayer(state);
         }
     }
 
-    public static long remove(long state, int index) {
-        if (getCurrentAction(state) != ACTION_REMOVE) {
-            throw new IllegalStateException("not a remove turn");
-        }
+//    public static long remove(long state, int index) {
+//        if (getCurrentAction(state) != ACTION_REMOVE) {
+//            throw new IllegalStateException("not a remove turn");
+//        }
+//
+//        state = clearBit(state, getMaskOffset(state, false) + index);
+//        state = clearBit(state, OFFSET_IS_REMOVE_TURN);
+//
+//        return switchActivePlayer(state);
+//    }
 
-        state = clearBit(state, getMaskOffset(state, false) + index);
+    static long removeWithMask(long state, int mask, boolean active) {
+        state &= ~(((long) mask) << getMaskOffset(state, !active));
         state = clearBit(state, OFFSET_IS_REMOVE_TURN);
 
         return switchActivePlayer(state);
     }
 
-    public static boolean isWinner(long state) {
-        if (getCount(state, false) > 0) {
+    static boolean isWinner(long state, boolean active) {
+        if (getCount(state, !active) > 0) {
             return false;
         }
-        if (getAvailableMoves(state, false) == 0) {
+        if (getAvailableMoves(state, !active) == 0) {
             return true;
         }
-        int positions = getMask(state, false);
+        int positions = getMask(state, !active);
         positions &= (positions - 1);
         return (positions & (positions - 1)) == 0;
     }
 
+/*
     private static boolean isMillMaker(long state, int index) {
         int positions = getMask(state, true);
         int mask = (1 << index);
@@ -253,6 +309,51 @@ public class Board {
             }
             int row = (index / 3) * 3;
             if ((((1 << row) | (1 << (row + 1)) | (1 << (row + 2))) & (0xFFFFFF ^ (positions | mask))) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+*/
+
+    static int getAvailableMoveCount(long state, boolean active) {
+        int count = 0;
+        int moves = Board.getAvailableMoves(state, active);
+        while (moves != 0) {
+            int move = moves & -moves;
+            moves &= moves - 1;
+            count += Board.countBits(Board.getAvailableMovesToMask(state, move, active));
+        }
+        return count;
+    }
+
+    static int getMillCount(long state, boolean active) {
+        int count = 0;
+        int mask = getPlayerMask(state, active);
+        for (int i = 0; i < millTable.length; i++) {
+            int mill = millTable[i];
+            if (((mask & mill) ^ mill) == 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    static boolean isMillMaker(long state, int mask, boolean active) {
+        int positions = getMask(state, active);
+
+        if ((mask & 0b000111000111000111000111) != 0) {
+            if (((0xFFFFFF ^ positions) & ((mask << 3) | (mask >> 21) | (mask << 6) | (mask >> 18))) == 0) {
+                return true;
+            }
+            if (((0xFFFFFF ^ positions) & ((mask >> 3) | (mask << 21) | (mask >> 6) | (mask << 18))) == 0) {
+                return true;
+            }
+        } else {
+            if (((0xFFFFFF ^ positions) & ((mask << 3) | (mask >> 21) | (mask >> 3) | (mask << 21))) == 0) {
+                return true;
+            }
+            if (((0xFFFFFF ^ positions) & (((mask << 1) | (mask << 2) | (mask >>> 1) | (mask >>> 2)) & 0b111000111000111000111000)) == 0) {
                 return true;
             }
         }
