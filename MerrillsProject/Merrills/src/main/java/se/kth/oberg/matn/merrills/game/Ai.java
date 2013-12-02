@@ -3,7 +3,7 @@ package se.kth.oberg.matn.merrills.game;
 import android.util.Log;
 
 public class Ai {
-    private static final int DEPTH_DEEP = 2;
+    private static final int DEPTH_DEEP = 3;
     private static final int DEPTH_SHALLOW = 1;
 
     private static final int INITIAL_MULT = 16;
@@ -41,11 +41,11 @@ public class Ai {
         millScore *= SCORE_MILL;
         Log.e("Mills", "score: " + millScore + " active: " + Board.getMillCount(state, active) + " inactive: " +  Board.getMillCount(state, !active));
 
-        int millMakerScore = 0;
-        millMakerScore += countMillMakers(state, active);
-        millMakerScore -= countMillMakers(state, !active);
-        millMakerScore *= SCORE_MILL_MAKER;
-        Log.e("MillM", "score: " + millMakerScore + " active: " + countMillMakers(state, active) + " inactive: " +  countMillMakers(state, !active));
+//        int millMakerScore = 0;
+//        millMakerScore += countMillMakers(state, active);
+//        millMakerScore -= countMillMakers(state, !active);
+//        millMakerScore *= SCORE_MILL_MAKER;
+//        Log.e("MillM", "score: " + millMakerScore + " active: " + countMillMakers(state, active) + " inactive: " +  countMillMakers(state, !active));
 //
 //        int winScore = 0;
 //        if (Board.isWinner(state, active)) {
@@ -55,8 +55,8 @@ public class Ai {
 //        }
 
 //        return pieceScore + moveScore + millScore + millMakerScore + winScore;
-        return pieceScore + moveScore + millScore + millMakerScore;
-//        return pieceScore + moveScore + millScore;
+//        return pieceScore + moveScore + millScore + millMakerScore;
+        return pieceScore + moveScore + millScore;
     }
 
     private static int countMillMakers(long state, boolean active) {
@@ -98,8 +98,15 @@ public class Ai {
             return color * scoreState(state, false);
         }
 
-        int topScore = Integer.MIN_VALUE;
-        int score;
+        int firstScore = Integer.MIN_VALUE;
+        long firstMove = 0;
+        int secondScore = Integer.MIN_VALUE;
+        long secondMove = 0;
+
+        int shallow = depth;
+        if (shallow > DEPTH_SHALLOW) {
+            shallow = DEPTH_SHALLOW;
+        }
 
         switch (Board.getCurrentAction(state)) {
             case Board.ACTION_MOVE: {
@@ -122,12 +129,22 @@ public class Ai {
                                 masks &= masks - 1;
 
                                 long remove = Board.removeWithMask(move, mask, true);
-                                score = -negamax(remove, depth - 1, -color);
-                                topScore = score > topScore ? score : topScore;
+                                int score = -negamax(remove, shallow - 1, -color);
+                                if (score > firstScore) {
+                                    secondScore = firstScore;
+                                    secondMove = firstMove;
+                                    firstScore = score;
+                                    firstMove = remove;
+                                }
                             }
                         } else {
-                            score = -negamax(move, depth - 1, -color);
-                            topScore = score > topScore ? score : topScore;
+                            int score = -negamax(move, shallow - 1, -color);
+                            if (score > firstScore) {
+                                secondScore = firstScore;
+                                secondMove = firstMove;
+                                firstScore = score;
+                                firstMove = move;
+                            }
                         }
                     }
                 }
@@ -148,12 +165,22 @@ public class Ai {
                             masks &= masks - 1;
 
                             long remove = Board.removeWithMask(move, mask, true);
-                            score = -negamax(remove, depth - 1, -color);
-                            topScore = score > topScore ? score : topScore;
+                            int score = -negamax(remove, shallow - 1, -color);
+                            if (score > firstScore) {
+                                secondScore = firstScore;
+                                secondMove = firstMove;
+                                firstScore = score;
+                                firstMove = remove;
+                            }
                         }
                     } else {
-                        score = -negamax(move, depth - 1, -color);
-                        topScore = score > topScore ? score : topScore;
+                        int score = -negamax(move, shallow - 1, -color);
+                        if (score > firstScore) {
+                            secondScore = firstScore;
+                            secondMove = firstMove;
+                            firstScore = score;
+                            firstMove = move;
+                        }
                     }
                 }
                 break;
@@ -164,7 +191,19 @@ public class Ai {
                 throw new IllegalStateException("illegal action");
         }
 
-        return topScore;
+        if (depth > DEPTH_SHALLOW) {
+            firstScore = -negamax(firstMove, depth - 1, -color);
+
+            if (secondMove != 0) {
+                secondScore = -negamax(secondMove, depth - 1, -color);
+
+                return firstScore > secondScore ? firstScore : secondScore;
+            } else {
+                return firstScore;
+            }
+        } else {
+            return firstScore;
+        }
     }
 
     public static int evaluateMove(long state, int deep, int shallow) {
