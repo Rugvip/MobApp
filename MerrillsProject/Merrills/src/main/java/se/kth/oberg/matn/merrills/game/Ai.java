@@ -10,40 +10,53 @@ public class Ai {
 
     private static final int SCORE_PIECE = 1;
     private static final int SCORE_FREEDOM = 2;
-    private static final int SCORE_MILL_MAKER = 5;
+    private static final int SCORE_MILL_MAKER = 1;
     private static final int SCORE_MILL = 10;
     private static final int SCORE_WIN = 1000;
 
-    private static int scoreState(long state) {
+    private static int scoreState(long state, boolean active) {
+        int activePieces = Board.getCount(state, active) + Board.countBits(Board.getPlayerMask(state, active));
+        int inactivePieces = Board.getCount(state, !active) + Board.countBits(Board.getPlayerMask(state, !active));
+
         int pieceScore = 0;
-        pieceScore += Board.getCount(state, true) + Board.countBits(Board.getPlayerMask(state, true));
-        pieceScore -= Board.getCount(state, false) + Board.countBits(Board.getPlayerMask(state, false));
+        pieceScore += activePieces;
+        pieceScore -= inactivePieces;
         pieceScore *= SCORE_PIECE;
+        Log.e("Piece", "score: " + pieceScore + " active: " + (Board.getCount(state, active) + Board.countBits(Board.getPlayerMask(state, active)))
+                + " inactive: " +  (Board.getCount(state, !active) + Board.countBits(Board.getPlayerMask(state, !active))));
 
         int moveScore = 0;
-        moveScore += Board.getAvailableMoveCount(state, true);
-        moveScore -= Board.getAvailableMoveCount(state, true);
+        if (activePieces > 3) {
+            moveScore += Board.getAvailableMoveCount(state, active);
+        }
+        if (inactivePieces > 3) {
+            moveScore -= Board.getAvailableMoveCount(state, !active);
+        }
         moveScore *= SCORE_FREEDOM;
-
-        int millMakerScore = 0;
-        millMakerScore += countMillMakers(state, true);
-        millMakerScore -= countMillMakers(state, false);
-        millMakerScore *= SCORE_MILL_MAKER;
-
+        Log.e("Moves", "score: " + moveScore + " active: " + Board.getAvailableMoveCount(state, active) + " inactive: " +  Board.getAvailableMoveCount(state, !active));
 
         int millScore = 0;
-        millScore += Board.getMillCount(state, true);
-        millScore -= Board.getMillCount(state, false);
+        millScore += Board.getMillCount(state, active);
+        millScore -= Board.getMillCount(state, !active);
         millScore *= SCORE_MILL;
+        Log.e("Mills", "score: " + millScore + " active: " + Board.getMillCount(state, active) + " inactive: " +  Board.getMillCount(state, !active));
 
-        int winScore = 0;
-        if (Board.isWinner(state, true)) {
-            winScore += SCORE_WIN;
-        } else if (Board.isWinner(state, false)) {
-            winScore -= SCORE_WIN;
-        }
+        int millMakerScore = 0;
+        millMakerScore += countMillMakers(state, active);
+        millMakerScore -= countMillMakers(state, !active);
+        millMakerScore *= SCORE_MILL_MAKER;
+        Log.e("MillM", "score: " + millMakerScore + " active: " + countMillMakers(state, active) + " inactive: " +  countMillMakers(state, !active));
+//
+//        int winScore = 0;
+//        if (Board.isWinner(state, active)) {
+//            winScore += SCORE_WIN;
+//        } else if (Board.isWinner(state, !active)) {
+//            winScore -= SCORE_WIN;
+//        }
 
-        return pieceScore + moveScore + millMakerScore + millScore + winScore;
+//        return pieceScore + moveScore + millScore + millMakerScore + winScore;
+        return pieceScore + moveScore + millScore + millMakerScore;
+//        return pieceScore + moveScore + millScore;
     }
 
     private static int countMillMakers(long state, boolean active) {
@@ -80,157 +93,205 @@ public class Ai {
         return count;
     }
 
-    public static int evaluateMove(long state, int deep, int shallow) {
-        if (shallow <= 0) {
-            return scoreState(state);
+    private static int negamax(long state, int depth, int color) {
+        if (depth <= 0) {
+            return color * scoreState(state, false);
         }
 
-        int firstScore = Integer.MIN_VALUE;
-        long firstMove = 0;
-        int secondScore = Integer.MIN_VALUE;
-        long secondMove = 0;
-        int thirdScore = Integer.MIN_VALUE;
-        long thirdMove = 0;
+        int topScore = Integer.MIN_VALUE;
+        int score;
 
         switch (Board.getCurrentAction(state)) {
             case Board.ACTION_MOVE: {
-                if (shallow > 0 || deep > 0) {
-                    int tos = Board.getAvailableMoves(state, true);
-                    while (tos != 0) {
-                        int to = tos & -tos;
-                        tos &= tos - 1;
+                int tos = Board.getAvailableMoves(state, true);
+                while (tos != 0) {
+                    int to = tos & -tos;
+                    tos &= tos - 1;
 
-                        int froms = Board.getAvailableMovesToMask(state, to, true);
-                        while (froms != 0) {
-                            int from = froms & -froms;
-                            froms &= froms - 1;
-                            long move = Board.moveWithMasks(state, from, to, true);
-                            int score = evaluateMove(move, 0, shallow - 1);
-                            if (score > firstScore) {
-                                thirdMove = secondMove;
-                                thirdScore = secondScore;
-                                secondMove = firstMove;
-                                secondScore = firstScore;
-                                firstMove = move;
-                                firstScore = score;
-                            } else if (score > secondScore) {
-                                thirdMove = secondMove;
-                                thirdScore = secondScore;
-                                secondMove = move;
-                                secondScore = score;
-                            } else if (score > thirdScore) {
-                                thirdMove = move;
-                                thirdScore = score;
+                    int froms = Board.getAvailableMovesToMask(state, to, true);
+                    while (froms != 0) {
+                        int from = froms & -froms;
+                        froms &= froms - 1;
+
+                        long move = Board.moveWithMasks(state, from, to, true);
+
+                        if (Board.getCurrentAction(move) == Board.ACTION_REMOVE) {
+                            int masks = Board.getAvailableRemoves(move, true);
+                            while (masks != 0) {
+                                int mask = masks & -masks;
+                                masks &= masks - 1;
+
+                                long remove = Board.removeWithMask(move, mask, true);
+                                score = -negamax(remove, depth - 1, -color);
+                                topScore = score > topScore ? score : topScore;
                             }
+                        } else {
+                            score = -negamax(move, depth - 1, -color);
+                            topScore = score > topScore ? score : topScore;
                         }
                     }
                 }
                 break;
             }
             case Board.ACTION_PLACE: {
-                if (shallow > 0 || deep > 0) {
-                    int masks = Board.getAvailablePlacements(state);
-                    while (masks != 0) {
-                        int mask = masks & -masks;
-                        masks &= masks - 1;
+                int places = Board.getAvailablePlacements(state);
+                while (places != 0) {
+                    int place = places & -places;
+                    places &= places - 1;
 
-                        long move = Board.placeWithMask(state, mask, true);
-                        int score = evaluateMove(move, 0, shallow - 1);
-                        if (score > firstScore) {
-                            thirdMove = secondMove;
-                            thirdScore = secondScore;
-                            secondMove = firstMove;
-                            secondScore = firstScore;
-                            firstMove = move;
-                            firstScore = score;
-                        } else if (score > secondScore) {
-                            thirdMove = secondMove;
-                            thirdScore = secondScore;
-                            secondMove = move;
-                            secondScore = score;
-                        } else if (score > thirdScore) {
-                            thirdMove = move;
-                            thirdScore = score;
+                    long move = Board.placeWithMask(state, place, true);
+
+                    if (Board.getCurrentAction(move) == Board.ACTION_REMOVE) {
+                        int masks = Board.getAvailableRemoves(move, true);
+                        while (masks != 0) {
+                            int mask = masks & -masks;
+                            masks &= masks - 1;
+
+                            long remove = Board.removeWithMask(move, mask, true);
+                            score = -negamax(remove, depth - 1, -color);
+                            topScore = score > topScore ? score : topScore;
                         }
-                    }
-                }
-                break;
-            }
-            case Board.ACTION_REMOVE: {
-                int masks = Board.getAvailableRemoves(state, true);
-                while (masks != 0) {
-                    int mask = masks & -masks;
-                    masks &= masks - 1;
-
-                    long move = Board.removeWithMask(state, mask, true);
-                    int score = evaluateMove(move, 0, shallow);
-                    if (score > firstScore) {
-                        thirdMove = secondMove;
-                        thirdScore = secondScore;
-                        secondMove = firstMove;
-                        secondScore = firstScore;
-                        firstMove = move;
-                        firstScore = score;
-                    } else if (score > secondScore) {
-                        thirdMove = secondMove;
-                        thirdScore = secondScore;
-                        secondMove = move;
-                        secondScore = score;
-                    } else if (score > thirdScore) {
-                        thirdMove = move;
-                        thirdScore = score;
+                    } else {
+                        score = -negamax(move, depth - 1, -color);
+                        topScore = score > topScore ? score : topScore;
                     }
                 }
                 break;
             }
             case Board.ACTION_WON:
-                return SCORE_WIN;
+                return color * SCORE_WIN;
             default:
                 throw new IllegalStateException("illegal action");
         }
 
-        if (firstMove != 0) {
-            firstScore = scoreIt(firstMove, firstScore, deep);
-        }
-        if (secondMove != 0) {
-            secondScore = scoreIt(secondMove, secondScore, deep);
-        }
-        if (thirdMove != 0) {
-            thirdScore = scoreIt(thirdMove, thirdScore, deep);
-        }
-
-        int score = firstScore;
-        score = secondScore > score ? secondScore : score;
-        score = thirdScore > score ? thirdScore : score;
-
-        return score;
+        return topScore;
     }
 
-    private static int scoreIt(long move, int score, int deep) {
-        switch (Board.getCurrentAction(move)) {
-            case Board.ACTION_MOVE:
-                if (deep > 0) {
-                    return -evaluateMove(move, deep - 1, DEPTH_SHALLOW);
-                } else {
-                    return -score;
-                }
-            case Board.ACTION_PLACE:
-                if (deep > 0) {
-                    return -evaluateMove(move, deep - 1, DEPTH_SHALLOW);
-                } else {
-                    return -score;
-                }
-            case Board.ACTION_REMOVE:
-                if (deep > 0) {
-                    return evaluateMove(move, deep, DEPTH_SHALLOW);
-                } else {
-                    return score;
-                }
-            case Board.ACTION_WON:
-                return -SCORE_WIN;
-            default:
-                throw new IllegalStateException("illegal action");
-        }
+    public static int evaluateMove(long state, int deep, int shallow) {
+//        if (shallow <= 0) {
+//            return scoreState(state);
+//        }
+//
+//        int firstScore = Integer.MIN_VALUE;
+//        long firstMove = 0;
+//        int secondScore = Integer.MIN_VALUE;
+//        long secondMove = 0;
+//        int thirdScore = Integer.MIN_VALUE;
+//        long thirdMove = 0;
+//
+//        switch (Board.getCurrentAction(state)) {
+//            case Board.ACTION_MOVE: {
+//                if (shallow > 0 || deep > 0) {
+//                    int tos = Board.getAvailableMoves(state, true);
+//                    while (tos != 0) {
+//                        int to = tos & -tos;
+//                        tos &= tos - 1;
+//
+//                        int froms = Board.getAvailableMovesToMask(state, to, true);
+//                        while (froms != 0) {
+//                            int from = froms & -froms;
+//                            froms &= froms - 1;
+//                            long move = Board.moveWithMasks(state, from, to, true);
+//                            int score = evaluateMove(move, 0, shallow - 1);
+//                            if (score > firstScore) {
+//                                thirdMove = secondMove;
+//                                thirdScore = secondScore;
+//                                secondMove = firstMove;
+//                                secondScore = firstScore;
+//                                firstMove = move;
+//                                firstScore = score;
+//                            } else if (score > secondScore) {
+//                                thirdMove = secondMove;
+//                                thirdScore = secondScore;
+//                                secondMove = move;
+//                                secondScore = score;
+//                            } else if (score > thirdScore) {
+//                                thirdMove = move;
+//                                thirdScore = score;
+//                            }
+//                        }
+//                    }
+//                }
+//                break;
+//            }
+//            case Board.ACTION_PLACE: {
+//                if (shallow > 0 || deep > 0) {
+//                    int masks = Board.getAvailablePlacements(state);
+//                    while (masks != 0) {
+//                        int mask = masks & -masks;
+//                        masks &= masks - 1;
+//
+//                        long move = Board.placeWithMask(state, mask, true);
+//                        int score = evaluateMove(move, 0, shallow - 1);
+//                        if (score > firstScore) {
+//                            thirdMove = secondMove;
+//                            thirdScore = secondScore;
+//                            secondMove = firstMove;
+//                            secondScore = firstScore;
+//                            firstMove = move;
+//                            firstScore = score;
+//                        } else if (score > secondScore) {
+//                            thirdMove = secondMove;
+//                            thirdScore = secondScore;
+//                            secondMove = move;
+//                            secondScore = score;
+//                        } else if (score > thirdScore) {
+//                            thirdMove = move;
+//                            thirdScore = score;
+//                        }
+//                    }
+//                }
+//                break;
+//            }
+//            case Board.ACTION_REMOVE: {
+//                int masks = Board.getAvailableRemoves(state, true);
+//                while (masks != 0) {
+//                    int mask = masks & -masks;
+//                    masks &= masks - 1;
+//
+//                    long move = Board.removeWithMask(state, mask, true);
+//                    int score = evaluateMove(move, 0, shallow);
+//                    if (score > firstScore) {
+//                        thirdMove = secondMove;
+//                        thirdScore = secondScore;
+//                        secondMove = firstMove;
+//                        secondScore = firstScore;
+//                        firstMove = move;
+//                        firstScore = score;
+//                    } else if (score > secondScore) {
+//                        thirdMove = secondMove;
+//                        thirdScore = secondScore;
+//                        secondMove = move;
+//                        secondScore = score;
+//                    } else if (score > thirdScore) {
+//                        thirdMove = move;
+//                        thirdScore = score;
+//                    }
+//                }
+//                break;
+//            }
+//            case Board.ACTION_WON:
+//                return SCORE_WIN;
+//            default:
+//                throw new IllegalStateException("illegal action");
+//        }
+//
+//        if (firstMove != 0) {
+//            firstScore = scoreIt(firstMove, firstScore, deep);
+//        }
+//        if (secondMove != 0) {
+//            secondScore = scoreIt(secondMove, secondScore, deep);
+//        }
+//        if (thirdMove != 0) {
+//            thirdScore = scoreIt(thirdMove, thirdScore, deep);
+//        }
+//
+//        int score = firstScore;
+//        score = secondScore > score ? secondScore : score;
+//        score = thirdScore > score ? thirdScore : score;
+//
+//        return score;
+        return 0;
     }
 
     public static long makeMove(long state, boolean aiPlayer) {
@@ -245,24 +306,37 @@ public class Ai {
                     int to = tos & -tos;
                     tos &= tos - 1;
 
-
                     int froms = Board.getAvailableMovesToMask(state, to, true);
                     while (froms != 0) {
                         int from = froms & -froms;
                         froms &= froms - 1;
                         long move = Board.moveWithMasks(state, from, to, true);
-                        int score;
+
                         if (Board.getCurrentAction(move) == Board.ACTION_REMOVE) {
-                            score = evaluateMove(move, DEPTH_DEEP, DEPTH_SHALLOW);
+                            int masks = Board.getAvailableRemoves(move, true);
+                            while (masks != 0) {
+                                int mask = masks & -masks;
+                                masks &= masks - 1;
+
+                                long remove = Board.removeWithMask(move, mask, true);
+                                int score = negamax(remove, DEPTH_DEEP, 1);
+                                if (score > maxScore) {
+                                    maxScore = score;
+                                    maxMove = remove;
+                                }
+                                Log.w("Ai", "made remove with score: " + score);
+                                Log.w("Ai", Long.toBinaryString(remove | (1L << 63)));
+                                Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+                            }
                         } else {
-                            score = -evaluateMove(move, DEPTH_DEEP, DEPTH_SHALLOW);
-                        }
-                        Log.w("Ai", "made move with score: " + score);
-                        Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
-                        Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
-                        if (score > maxScore) {
-                            maxScore = score;
-                            maxMove = move;
+                            int score = negamax(move, DEPTH_DEEP, 1);
+                            if (score > maxScore) {
+                                maxScore = score;
+                                maxMove = move;
+                            }
+                            Log.w("Ai", "made move with score: " + score);
+                            Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
+                            Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
                         }
                     }
                 }
@@ -270,49 +344,61 @@ public class Ai {
             }
             case Board.ACTION_PLACE: {
                 Log.w("Ai", "action = place");
-                int masks = Board.getAvailablePlacements(state);
-                Log.w("Ai", Long.toBinaryString(masks | (1L << 63)));
-                Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
-                while (masks != 0) {
-                    int mask = masks & -masks;
-                    masks &= masks - 1;
+                int places = Board.getAvailablePlacements(state);
+                while (places != 0) {
+                    int place = places & -places;
+                    places &= places - 1;
 
-                    long move = Board.placeWithMask(state, mask, true);
-                    int score;
+                    long move = Board.placeWithMask(state, place, true);
+
                     if (Board.getCurrentAction(move) == Board.ACTION_REMOVE) {
-                        score = evaluateMove(move, DEPTH_DEEP, DEPTH_SHALLOW);
-                    } else {
-                        score = -evaluateMove(move, DEPTH_DEEP, DEPTH_SHALLOW);
-                    }
-                    Log.w("Ai", "made move with score: " + score);
-                    Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
-                    Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
-                    if (score > maxScore) {
-                        maxScore = score;
-                        maxMove = move;
-                    }
-                }
-                break;
-            }
-            case Board.ACTION_REMOVE: {
-                Log.w("Ai", "action = remove");
-                int masks = Board.getAvailableRemoves(state, true);
-                while (masks != 0) {
-                    int mask = masks & -masks;
-                    masks &= masks - 1;
+                        int masks = Board.getAvailableRemoves(move, true);
+                        while (masks != 0) {
+                            int mask = masks & -masks;
+                            masks &= masks - 1;
 
-                    long move = Board.removeWithMask(state, mask, true);
-                    int score = -evaluateMove(move, DEPTH_DEEP, DEPTH_SHALLOW);
-                    Log.w("Ai", "made move with score: " + score);
-                    Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
-                    Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
-                    if (score > maxScore) {
-                        maxScore = score;
-                        maxMove = move;
+                            long remove = Board.removeWithMask(move, mask, true);
+                            int score = negamax(remove, DEPTH_DEEP, 1);
+                            if (score > maxScore) {
+                                maxScore = score;
+                                maxMove = remove;
+                            }
+                            Log.w("Ai", "made remove with score: " + score);
+                            Log.w("Ai", Long.toBinaryString(remove | (1L << 63)));
+                            Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+                        }
+                    } else {
+                        int score = negamax(move, DEPTH_DEEP, 1);
+                        if (score > maxScore) {
+                            maxScore = score;
+                            maxMove = move;
+                        }
+                        Log.w("Ai", "made move with score: " + score);
+                        Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
+                        Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
                     }
                 }
                 break;
             }
+//            case Board.ACTION_REMOVE: {
+//                Log.w("Ai", "action = remove");
+//                int masks = Board.getAvailableRemoves(state, true);
+//                while (masks != 0) {
+//                    int mask = masks & -masks;
+//                    masks &= masks - 1;
+//
+//                    long move = Board.removeWithMask(state, mask, true);
+//                    int score = negamax(move, DEPTH_DEEP, Integer.MIN_VALUE, Integer.MAX_VALUE, -1);
+//                    Log.w("Ai", "made move with score: " + score);
+//                    Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
+//                    Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+//                    if (score > maxScore) {
+//                        maxScore = score;
+//                        maxMove = move;
+//                    }
+//                }
+//                break;
+//            }
             case Board.ACTION_WON:
                 Log.w("Ai", "action = won");
                 return state;

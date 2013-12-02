@@ -22,6 +22,8 @@ public class GameState {
         }
         long diff = before ^ after;
         boolean active = Board.getActivePlayer(before);
+        boolean swapped = active != Board.getActivePlayer(after);
+        int removeMask = Board.getMask(diff, !active);
         switch (Board.getCurrentAction(before)) {
             case Board.ACTION_PLACE:
                 notifyAdded(Board.getActivePlayer(before), Board.getBitIndex(Board.getPlayerMask(diff, active)));
@@ -33,12 +35,19 @@ public class GameState {
                 break;
             }
             case Board.ACTION_REMOVE:
-                notifyRemoved(Board.getBitIndex(Board.getPlayerMask(diff, !active)));
                 break;
             case Board.ACTION_WON:
+                if (removeMask != 0) {
+                    notifyRemoved(Board.getBitIndex(removeMask));
+                }
                 break;
             default:
                 throw new IllegalStateException("unknown action");
+        }
+        if (swapped) {
+            if (removeMask != 0) {
+                notifyRemoved(Board.getBitIndex(removeMask));
+            }
         }
         switch (Board.getCurrentAction(after)) {
             case Board.ACTION_PLACE:
