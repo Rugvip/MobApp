@@ -47,8 +47,8 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         boolean activePlayer = Board.getActivePlayer(savedGameState);
         int trueCount = Board.getPlayerCount(savedGameState, true);
         int falseCount = Board.getPlayerCount(savedGameState, false);
-        int trueMask = Board.getPlayerCount(savedGameState, true);
-        int falseMask = Board.getPlayerCount(savedGameState, false);
+        int trueMask = Board.getPlayerMask(savedGameState, true);
+        int falseMask = Board.getPlayerMask(savedGameState, false);
         Log.d("BoardView", "Loaded: " + activePlayer + " " + trueCount + " " + falseCount + " " + Integer.toBinaryString(trueMask) + " " + Integer.toBinaryString(falseMask));
 
         for (int i = 0; i < trueCount; i++) {
