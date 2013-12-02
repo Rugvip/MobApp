@@ -1,7 +1,9 @@
 package se.kth.oberg.matn.merrills;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,7 +15,7 @@ import se.kth.oberg.matn.merrills.view.BoardView;
 
 public class MainActivity extends Activity {
     private BoardView view;
-    private final GameState gameState = new GameState();;
+    private GameState gameState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,18 +24,26 @@ public class MainActivity extends Activity {
 //        requestWindowFeature(Window.FEATURE_NO_TITLE);
 //        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        gameState = new GameState(this);
         new GameLogger(gameState);
 
         view = new BoardView(this, gameState);
         setContentView(view);
 
+        long savedState = 0;
+
         if (savedInstanceState != null) {
-            long savedGameState = savedInstanceState.getLong("yes");
-            Log.i("Load", Long.toBinaryString(savedGameState));
-            gameState.load(savedGameState);
-            view.load(savedGameState);
+            savedState = savedInstanceState.getLong("saved_state");
+            Log.i("Restore", Long.toBinaryString(savedState));
         } else {
+            savedState = PreferenceManager.getDefaultSharedPreferences(this).getLong("saved_state", 0L);
+            Log.i("Continue", Long.toBinaryString(savedState));
             view.reset();
+        }
+
+        if (savedState != 0) {
+            gameState.load(savedState);
+            view.load(savedState);
         }
 
         view.setOnTouchListener(new PiecePokeListener() {
@@ -48,7 +58,7 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.i("Saved", Long.toBinaryString(gameState.getState()));
-        outState.putLong("yes", gameState.getState());
+        outState.putLong("saved_state", gameState.getState());
     }
 
     @Override
@@ -60,6 +70,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit().putLong("saved_state", gameState.getState())
+                .apply();
         Log.e("Activity", "onStop");
     }
 

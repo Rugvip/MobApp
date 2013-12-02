@@ -3,7 +3,7 @@ package se.kth.oberg.matn.merrills.game;
 import android.util.Log;
 
 public class Ai {
-    private static final int DEPTH_DEEP = 3;
+    private static final int DEPTH_DEEP = 2;
     private static final int DEPTH_SHALLOW = 1;
 
     private static final int INITIAL_MULT = 16;

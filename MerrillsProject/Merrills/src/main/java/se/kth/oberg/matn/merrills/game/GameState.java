@@ -1,18 +1,26 @@
 package se.kth.oberg.matn.merrills.game;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameState {
+public class GameState implements SharedPreferences.OnSharedPreferenceChangeListener {
     private int selectedIndex = -1;
     private long state;
+    private boolean ai;
 
-    public GameState() {
+    public GameState(Context context) {
         state = Board.createBoard(false, true);
         Log.i("new board", Long.toBinaryString(state | (1L << 63)));
         Log.i("new board", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        ai = sharedPreferences.getBoolean("AI", false);
     }
 
     public void notifyDiff(long before, long after) {
@@ -87,8 +95,14 @@ public class GameState {
                 throw new IllegalStateException("unknown action");
         }
         notifyDiff(oldState, state);
+        if (ai) {
+            doAi();
+        }
+    }
+
+    private void doAi() {
         while (Board.getActivePlayer(state) == false && Board.getCurrentAction(state) != Board.ACTION_WON) {
-            oldState = state;
+            long oldState = state;
             state = Ai.makeMove(state, false);
             Log.i("Ai", "Made move");
             Log.i("Ai", Long.toBinaryString(oldState | (1L << 63)));
@@ -98,28 +112,17 @@ public class GameState {
         }
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if ("AI".equals(key)) {
+            ai = sharedPreferences.getBoolean(key, false);
+        }
+    }
+
     private void doPlace(int index) {
         Log.i("doPlace", "index: " + index);
         if (Board.isAvailablePlacement(state, index)) {
-//            notifyAdded(Board.getActivePlayer(state), index);
             state = Board.placeWithMask(state, 1 << index, true);
-
-            switch (Board.getCurrentAction(state)) {
-                case Board.ACTION_REMOVE:
-//                    notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
-                    break;
-                case Board.ACTION_MOVE:
-//                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
-                    break;
-                case Board.ACTION_PLACE:
-//                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
-                    break;
-                case Board.ACTION_WON:
-//                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
-                    break;
-                default:
-                    throw new IllegalStateException("unknown action");
-            }
         }
     }
 
@@ -140,22 +143,7 @@ public class GameState {
                 if (Board.isValidMove(state, selectedIndex, index, true)) {
                     state = Board.moveWithMasks(state, 1 << selectedIndex, 1 << index, true);
                     notifySelected(selectedIndex, false);
-//                    notifyMoved(selectedIndex, index);
                     selectedIndex = -1;
-
-                    switch (Board.getCurrentAction(state)) {
-                        case Board.ACTION_REMOVE:
-//                            notifyTurnType(Board.getActivePlayer(state), TurnType.REMOVE);
-                            break;
-                        case Board.ACTION_MOVE:
-//                            notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
-                            break;
-                        case Board.ACTION_WON:
-//                            notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
-                            break;
-                        default:
-                            throw new IllegalStateException("unknown action");
-                    }
                 }
             }
         }
@@ -164,23 +152,7 @@ public class GameState {
     private void doRemove(int index) {
         Log.i("doRemove", "index: " + index);
         if (Board.isAvailableRemove(state, index, true)) {
-//            state = Board.remove(state, index);
             state = Board.removeWithMask(state, 1 << index, true);
-//            notifyRemoved(index);
-
-            switch (Board.getCurrentAction(state)) {
-                case Board.ACTION_MOVE:
-//                    notifyTurnType(Board.getActivePlayer(state), TurnType.CHOOSE_FROM);
-                    break;
-                case Board.ACTION_PLACE:
-//                    notifyTurnType(Board.getActivePlayer(state), TurnType.PLACE);
-                    break;
-                case Board.ACTION_WON:
-//                    notifyTurnType(Board.getActivePlayer(state), TurnType.WIN);
-                    break;
-                default:
-                    throw new IllegalStateException("unknown action");
-            }
         }
     }
 
