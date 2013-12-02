@@ -3,8 +3,9 @@
 <preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
     <header
         android:fragment="se.kth.oberg.matn.merrills.SettingsFragment"
-        android:title="Settings1" />
+        android:title="Rules" />
     <header
         android:fragment="se.kth.oberg.matn.merrills.SettingsFragmentTwo"
-        android:title="Settings2" />
+        android:title="Display" />
 </preference-headers>
+

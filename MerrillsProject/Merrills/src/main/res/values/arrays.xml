@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="colorList">
+        <item>Red</item>
+        <item>Blue</item>
+        <item>Yellow</item>
+        <item>asdasd</item>
+    </string-array>
+    <string-array name="colorListValues">
+        <item>red_piece</item>
+        <item>blue_piece</item>
+        <item>yellow_piece</item>
+        <item>asdasd_piece</item>
+    </string-array>
+</resources>

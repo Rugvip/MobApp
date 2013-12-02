@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -102,8 +103,17 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         this.gameState = gameState;
         getHolder().addCallback(this);
 
-        falseDrawable = context.getResources().getDrawable(R.drawable.false_piece);
-        trueDrawable = context.getResources().getDrawable(R.drawable.true_piece);
+//        R.drawable.red_piece
+        trueDrawable = context.getResources().getDrawable(
+                context.getResources()
+                        .getIdentifier(PreferenceManager.getDefaultSharedPreferences(context)
+                                .getString("player1_color","red_piece"),"drawable",context
+                                .getPackageName()));
+        falseDrawable = context.getResources().getDrawable(
+                context.getResources()
+                        .getIdentifier(PreferenceManager.getDefaultSharedPreferences(context)
+                                .getString("player2_color","blue_piece"),"drawable",context
+                                .getPackageName()));
         backgroundDrawable = context.getResources().getDrawable(R.drawable.board);
 
         gameState.addPieceAddListener(pieceAddListener);

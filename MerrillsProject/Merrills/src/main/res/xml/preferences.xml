@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <ListPreference
-        android:title="Fragment 1 setting"
-        android:defaultValue="defaultValue"
-        />
+        <SwitchPreference
+            android:title="Enable AI"
+            android:defaultValue="false"
+            android:key="AI"
+            />
 </PreferenceScreen>

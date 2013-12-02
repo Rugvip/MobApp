@@ -30,7 +30,6 @@ public class WelcomeActivity extends Activity {
     }
 
     public void newGameListener(View view) {
-        Toast.makeText(this, "You get a toast!", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("loadFile", false);
         startActivity(intent);
