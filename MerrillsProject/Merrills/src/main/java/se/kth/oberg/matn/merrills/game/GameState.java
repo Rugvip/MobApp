@@ -15,13 +15,14 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
     private SharedPreferences sharedPreferences;
 
     public GameState(Context context) {
-        state = Board.createBoard(false, true);
-        Log.i("new board", Long.toBinaryString(state | (1L << 63)));
-        Log.i("new board", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
-
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
         ai = sharedPreferences.getBoolean("AI", false);
+
+        state = Board.createBoard(sharedPreferences.getBoolean("remove_mills", false),
+                sharedPreferences.getBoolean("allow_flight", true));
+        Log.i("new board", Long.toBinaryString(state | (1L << 63)));
+        Log.i("new board", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
     }
 
     public void notifyDiff(long before, long after) {

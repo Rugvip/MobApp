@@ -7,8 +7,8 @@
         android:key="AI" />
     <SwitchPreference
         android:title="Enable Flying"
-        android:defaultValue="false"
-        android:key="flying" />
+        android:defaultValue="true"
+        android:key="allow_flight" />
     <SwitchPreference
         android:title="Removeable mills"
         android:defaultValue="false"

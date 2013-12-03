@@ -20,7 +20,7 @@ public class SettingsActivity extends PreferenceActivity {
         return true;
     }
 
-    public class SettingsFragment extends PreferenceFragment {
+    public static class SettingsFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState){
             super.onCreate(savedInstanceState);
@@ -28,7 +28,7 @@ public class SettingsActivity extends PreferenceActivity {
         }
     }
 
-    public class SettingsFragmentTwo extends PreferenceFragment {
+    public static class SettingsFragmentTwo extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState){
             super.onCreate(savedInstanceState);

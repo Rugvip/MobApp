@@ -1,6 +1,7 @@
 package se.kth.oberg.matn.merrills;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import android.widget.EditText;
 import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.view.BoardView;
 
