@@ -8,12 +8,12 @@
         android:entries="@array/colorList"
         android:entryValues="@array/colorListValues"
         android:key="player1_color"
-        android:defaultValue="/res/drawable/red_piece.xml" />
+        android:defaultValue="red_piece" />
     <ListPreference
         android:title="Player 2 color:"
         android:enabled="true"
         android:entries="@array/colorList"
         android:entryValues="@array/colorListValues"
         android:key="player2_color"
-        android:defaultValue="/res/drawable/blue_piece.xml" />
+        android:defaultValue="blue_piece" />
 </PreferenceScreen>

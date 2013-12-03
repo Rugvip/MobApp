@@ -126,13 +126,11 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         trueDrawable = context.getResources().getDrawable(
                 context.getResources()
                         .getIdentifier(PreferenceManager.getDefaultSharedPreferences(context)
-                                .getString("player1_color","red_piece"),"drawable",context
-                                .getPackageName()));
+                                .getString("player1_color","red_piece"),"drawable", context.getPackageName()));
         falseDrawable = context.getResources().getDrawable(
                 context.getResources()
                         .getIdentifier(PreferenceManager.getDefaultSharedPreferences(context)
-                                .getString("player2_color","blue_piece"),"drawable",context
-                                .getPackageName()));
+                                .getString("player2_color","blue_piece"),"drawable", context.getPackageName()));
         backgroundDrawable = context.getResources().getDrawable(R.drawable.board);
 
         gameState.addPieceAddListener(pieceAddListener);
