@@ -82,7 +82,7 @@ public class WelcomeActivity extends Activity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            case R.id.action_settings:
+            case R.id.action_new_game:
                 Intent intent = new Intent(this,SettingsActivity.class);
                 startActivity(intent);
                 return true;

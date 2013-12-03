@@ -1,14 +1,12 @@
 package se.kth.oberg.matn.merrills;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
-import android.view.WindowManager;
 
 import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.view.BoardView;
@@ -111,7 +109,9 @@ public class MainActivity extends Activity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
-            case R.id.action_settings:
+            case R.id.action_new_game:
+                finish();
+                startActivity(new Intent(this, MainActivity.class));
                 return true;
         }
         return super.onOptionsItemSelected(item);

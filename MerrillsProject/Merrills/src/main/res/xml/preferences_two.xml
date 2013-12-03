@@ -1,22 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <CheckBoxPreference
-        android:title="This box does nothing!, not even once!"/>
+    <CheckBoxPreference android:title="This box does nothing!" />
     <ListPreference
         android:title="Player 1 color:"
         android:enabled="true"
         android:entries="@array/colorList"
         android:entryValues="@array/colorListValues"
         android:key="player1_color"
-        android:defaultValue="/res/drawable/red_piece.xml"
-        />
+        android:defaultValue="/res/drawable/red_piece.xml" />
     <ListPreference
         android:title="Player 2 color:"
         android:enabled="true"
         android:entries="@array/colorList"
         android:entryValues="@array/colorListValues"
         android:key="player2_color"
-        android:defaultValue="/res/drawable/blue_piece.xml"
-        />
+        android:defaultValue="/res/drawable/blue_piece.xml" />
 </PreferenceScreen>
