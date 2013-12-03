@@ -2,12 +2,15 @@ package se.kth.oberg.matn.merrills;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 import android.widget.EditText;
 import se.kth.oberg.matn.merrills.game.GameState;
@@ -115,6 +118,25 @@ public class MainActivity extends Activity {
                 finish();
                 startActivity(new Intent(this, MainActivity.class));
                 return true;
+            case R.id.action_save_game:
+                final EditText input = new EditText(this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage("Would you like to sef?").setView(input)
+                        .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Log.e("action_save_game", "should savegame" + input.getText().toString());
+                                DatabaseConnection.saveGame(MainActivity.this,input.getText().toString(),gameState.getState());
+                            }
+                        })
+                        .setNegativeButton("Nah", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Log.e("action_save_game", "Do nothing: should NOT savegame");
+                            }
+                        });
+                builder.create().show();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
