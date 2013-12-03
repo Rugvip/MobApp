@@ -15,4 +15,11 @@
         android:entryValues="@array/colorListValues"
         android:key="player2_color"
         android:defaultValue="blue_piece" />
+    <ListPreference
+        android:title="Board color:"
+        android:enabled="true"
+        android:entries="@array/colorListBoard"
+        android:entryValues="@array/colorListBoardValues"
+        android:key="board_color"
+        android:defaultValue="board" />
 </PreferenceScreen>
