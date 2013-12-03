@@ -9,6 +9,7 @@ public class Dimensions {
     private int size;
     private int offsetX;
     private int offsetY;
+    private boolean vertical;
 
     public int getSize() {
         return size;
@@ -18,6 +19,9 @@ public class Dimensions {
     }
     public int getOffsetY() {
         return offsetY;
+    }
+    public boolean isVertical() {
+        return vertical;
     }
 
     public static Dimensions calculate(int width, int height, Dimensions dimensions) {
@@ -31,10 +35,11 @@ public class Dimensions {
         dimensions.offsetX = (int) offsetX;
 
         if (width >= height) {
-            float offsetY = (height - size) / 2.0f;
-            dimensions.offsetX = (int) offsetY;
+            dimensions.offsetY = (int) ((height - size) / 2.0f);
+            dimensions.vertical = false;
         } else {
             dimensions.offsetY = (int) offsetX;
+            dimensions.vertical = true;
         }
 
         return dimensions;

@@ -54,14 +54,10 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
 
         for (int i = 0; i < trueCount; i++) {
             PieceView truePiece = new PieceView(trueDrawable);
-            truePiece.setX(1 + i * 0.2f);
-            truePiece.setY(7.5f);
             trueQueue.add(truePiece);
         }
         for (int i = 0; i < falseCount; i++) {
             PieceView falsePiece = new PieceView(falseDrawable);
-            falsePiece.setX(6 - i * 0.2f);
-            falsePiece.setY(7.5f);
             falseQueue.add(falsePiece);
         }
         for (int i = 0; i < 24; i++) {
@@ -84,14 +80,37 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         turnPaint = activePlayer ? trueTurnPaint : falseTurnPaint;
     }
 
+    public boolean positionedPieces = false;
+
+    public void positionPieceQueues(boolean vertical) {
+        int i = 0;
+        for (PieceView piece : trueQueue) {
+            i++;
+            if (vertical) {
+                piece.setX(1 + i * 0.2f);
+                piece.setY(7.5f);
+            } else {
+                piece.setX(-0.5f);
+                piece.setY(2.5f + i * 0.2f);
+            }
+        }
+        i = 0;
+        for (PieceView piece : falseQueue) {
+            i++;
+            if (vertical) {
+                piece.setX(6 - i * 0.2f);
+                piece.setY(7.5f);
+            } else {
+                piece.setX(7.5f);
+                piece.setY(2.5f + i * 0.2f);
+            }
+        }
+    }
+
     public void reset() {
         for (int i = 0; i < 9; i++) {
             PieceView truePiece = new PieceView(trueDrawable);
             PieceView falsePiece = new PieceView(falseDrawable);
-            truePiece.setX(1 + i * 0.2f);
-            truePiece.setY(7.5f);
-            falsePiece.setX(6 - i * 0.2f);
-            falsePiece.setY(7.5f);
             trueQueue.add(truePiece);
             falseQueue.add(falsePiece);
         }
@@ -216,6 +235,12 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                     canvas.drawColor(0xFF_FFFFFF);
 
                     dimensions = Dimensions.calculate(canvas.getWidth(), canvas.getHeight(), dimensions);
+
+                    if (!positionedPieces) {
+                        positionPieceQueues(dimensions.isVertical());
+                        positionedPieces = true;
+                    }
+
                     canvas.translate(dimensions.getOffsetX(), dimensions.getOffsetY());
                     backgroundDrawable.setBounds(0, 0, dimensions.getSize(), dimensions.getSize());
                     backgroundDrawable.draw(canvas);
