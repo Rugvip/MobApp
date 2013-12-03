@@ -15,7 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import se.kth.oberg.matn.merrills.Dimensions;
-import se.kth.oberg.matn.merrills.Markers;
 import se.kth.oberg.matn.merrills.R;
 import se.kth.oberg.matn.merrills.game.Board;
 import se.kth.oberg.matn.merrills.game.GameState;

@@ -1,4 +1,4 @@
-package se.kth.oberg.matn.merrills;
+package se.kth.oberg.matn.merrills.view;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
