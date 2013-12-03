@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +30,12 @@ public class DatabaseConnection {
         dbHelper.close();
     }
 
-    private void resetDatabase(){
-        database.execSQL("DROP TABLE IF EXISTS " + DatabaseHelper.TABLE_NAME);
-        database.execSQL(DatabaseHelper.DATABASE_CREATE);
+    public static void resetDatabase(Context context){
+        DatabaseConnection con = new DatabaseConnection(context);
+        con.open();
+        con.database.execSQL("DROP TABLE IF EXISTS " + DatabaseHelper.TABLE_NAME);
+        con.database.execSQL(DatabaseHelper.DATABASE_CREATE);
+        con.close();
     }
 
     public static void saveGame(Context context, String name, long savedGameState) {
@@ -44,23 +48,27 @@ public class DatabaseConnection {
         con.close();
     }
 
-    public List<SavedGame> getLoadList(Context context) {
-        DatabaseConnection con = new DatabaseConnection(context);
-        con.open();
-
+    public static List<SavedGame> getLoadList(Context context) {
         ArrayList<SavedGame> list = new ArrayList<>();
 
-        Cursor cursor = database.query(DatabaseHelper.TABLE_NAME, columns, "*", null, null, null, null);
+        try {
+            DatabaseConnection con = new DatabaseConnection(context);
+            con.open();
 
-        while (cursor.moveToNext()) {
-            SavedGame savedGame = new SavedGame();
-            savedGame.name = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_NAME));
-            savedGame.id = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ID));
-            savedGame.state = cursor.getLong(cursor.getColumnIndex(DatabaseHelper.COLUMN_STATE_MASK));
-            list.add(savedGame);
+            Cursor cursor = con.database.query(DatabaseHelper.TABLE_NAME, con.columns, null, null, null, null, null);
+
+            while (cursor.moveToNext()) {
+                SavedGame savedGame = new SavedGame();
+                savedGame.name = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_NAME));
+                savedGame.id = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ID));
+                savedGame.state = cursor.getLong(cursor.getColumnIndex(DatabaseHelper.COLUMN_STATE_MASK));
+                list.add(savedGame);
+            }
+
+            con.close();
+
+        } catch (SQLiteException e) {
         }
-
-        con.close();
 
         return list;
     }
@@ -70,8 +78,12 @@ public class DatabaseConnection {
         private int id;
         private long state;
 
-        public String getName() {
+        public String toString() {
             return name;
+        }
+
+        public long getState() {
+            return state;
         }
     }
 }

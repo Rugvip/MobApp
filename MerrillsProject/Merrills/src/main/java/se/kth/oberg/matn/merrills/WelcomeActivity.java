@@ -8,20 +8,38 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
+import android.widget.*;
 
 public class WelcomeActivity extends Activity {
-    DatabaseConnection db = new DatabaseConnection(this);
-    private Button newGameButton;
-    private Button loadGameButton;
     private long continueState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.welcome_activity);
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        refreshGameList();
+    }
+
+    private void refreshGameList() {
+        ListView spinner = (ListView) findViewById(R.id.load_spinner);
+        final ArrayAdapter<DatabaseConnection.SavedGame> arrayAdapter = new ArrayAdapter<>(this,
+                R.layout.list_item, DatabaseConnection.getLoadList(this));
+        spinner.setAdapter(arrayAdapter);
+        spinner.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
+                DatabaseConnection.SavedGame savedGame = arrayAdapter.getItem(pos);
+                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+                intent.putExtra("state", savedGame.getState());
+                Log.e("Load", "intent with extra: " + Long.toBinaryString(savedGame.getState()));
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -36,13 +54,6 @@ public class WelcomeActivity extends Activity {
         Log.e("Wat", "state: " + Long.toBinaryString(continueState));
     }
 
-    public void resetDatabase(View view) {
-        db.open();
-        db.resetDatabase();
-        db.close();
-        Toast.makeText(this, "Database reseted", Toast.LENGTH_LONG).show();
-    }
-
     public void newGameListener(View view) {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
@@ -55,18 +66,9 @@ public class WelcomeActivity extends Activity {
         startActivity(intent);
     }
 
-    public void loadGameListener(View view) {
-//        Toast.makeText(this, "You get another toast!", Toast.LENGTH_SHORT).show();
-//        Intent intent = new Intent(this, MainActivity.class);
-//        intent.putExtra("loadFile", true);
-//        startActivity(intent);
-
-        db.open();
-        db.saveGame("asdasd", 346346345345L);
-        db.saveGame("dasdasda", 246723572457L);
-        long save = db.loadGame(1);
-        db.close();
-        Toast.makeText(this, "LOOL", Toast.LENGTH_LONG).show();
+    public void resetDatabase(View view) {
+        DatabaseConnection.resetDatabase(this);
+        refreshGameList();
     }
 
     @Override

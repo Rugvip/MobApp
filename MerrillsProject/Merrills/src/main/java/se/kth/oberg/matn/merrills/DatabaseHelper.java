@@ -16,7 +16,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_CREATE = "create table "
             + TABLE_NAME + "("
             + COLUMN_ID + " integer primary key autoincrement, "
-            + COLUMN_NAME + " text not null "
+            + COLUMN_NAME + " text not null, "
+            + COLUMN_STATE_MASK + " integer not null "
             + ");";
 
     public DatabaseHelper(Context context) {

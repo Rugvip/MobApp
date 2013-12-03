@@ -19,19 +19,6 @@
         android:layout_gravity="center_horizontal"
         android:onClick="continueGameListener"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Load Game"
-        android:id="@+id/loadGameButton"
-        android:layout_gravity="center_horizontal"
-        android:onClick="loadGameListener"/>
-
-    <Spinner
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/load_spinner" />
-
     <TextView
         android:layout_width="wrap_content"
         android:textSize="14dp"
@@ -47,4 +34,32 @@
         android:id="@+id/dropDatabaseButton"
         android:layout_gravity="center_horizontal"
         android:onClick="resetDatabase"/>
+
+    <TextView
+        android:layout_marginTop="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textSize="30sp"
+        android:text="Saved games" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:weightSum="10"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+        <FrameLayout
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"></FrameLayout>
+        <ListView
+            android:gravity="center"
+            android:layout_weight="6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/load_spinner"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
 </LinearLayout>
