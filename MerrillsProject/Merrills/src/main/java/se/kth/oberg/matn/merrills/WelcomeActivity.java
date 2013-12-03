@@ -40,6 +40,14 @@ public class WelcomeActivity extends Activity {
                 startActivity(intent);
             }
         });
+        spinner.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int pos, long id) {
+                DatabaseConnection.deleteSave(WelcomeActivity.this, arrayAdapter.getItem(pos));
+                refreshGameList();
+                return true;
+            }
+        });
     }
 
     @Override

@@ -38,6 +38,13 @@ public class DatabaseConnection {
         con.close();
     }
 
+    public static void deleteSave(Context context, SavedGame savedGame) {
+        DatabaseConnection con = new DatabaseConnection(context);
+        con.open();
+        con.database.delete(DatabaseHelper.TABLE_NAME, DatabaseHelper.COLUMN_ID + " = ?", new String[] {"" + savedGame.id});
+        con.close();
+    }
+
     public static void saveGame(Context context, String name, long savedGameState) {
         DatabaseConnection con = new DatabaseConnection(context);
         con.open();
