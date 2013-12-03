@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameState implements SharedPreferences.OnSharedPreferenceChangeListener {
+    public static final boolean AI_PLAYER = false;
     private int selectedIndex = -1;
     private long state;
     private boolean ai;
     private SharedPreferences sharedPreferences;
+    private boolean aiMoving = false;
 
     public GameState(Context context) {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -79,6 +81,9 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
     }
 
     public void doPosition(int index) {
+        if (aiMoving) {
+            return;
+        }
         Log.i("doPosition", Long.toBinaryString(state | (1L << 63)));
         Log.i("doPosition", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
         long oldState = state;
@@ -104,14 +109,26 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
     }
 
     private void doAi() {
-        while (Board.getActivePlayer(state) == false && Board.getCurrentAction(state) != Board.ACTION_WON) {
-            long oldState = state;
-            state = Ai.makeMove(state, false);
-            Log.i("Ai", "Made move");
-            Log.i("Ai", Long.toBinaryString(oldState | (1L << 63)));
-            Log.i("Ai", Long.toBinaryString(state | (1L << 63)));
-            Log.i("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
-            notifyDiff(oldState, state);
+        if (Board.getCurrentAction(state) != Board.ACTION_WON && Board.getActivePlayer(state) == AI_PLAYER) {
+            aiMoving = true;
+            Ai ai = new Ai() {
+                @Override
+                protected void onPostExecute(Long move) {
+                    if (move == null) {
+                        throw new IllegalStateException("Ai move failed");
+                    }
+
+                    Log.i("Ai", "Made move");
+                    Log.i("Ai", Long.toBinaryString(state | (1L << 63)));
+                    Log.i("Ai", Long.toBinaryString(move | (1L << 63)));
+                    Log.i("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+
+                    notifyDiff(state, move);
+                    state = move;
+                    aiMoving = false;
+                }
+            };
+            ai.execute(state);
         }
     }
 
