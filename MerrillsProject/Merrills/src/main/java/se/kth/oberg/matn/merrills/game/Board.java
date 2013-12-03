@@ -88,7 +88,8 @@ public class Board {
     }
 
     static int getCount(long state, boolean active) {
-        return (int) ((state >>> ((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) == active ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT)) & COUNT_MASK);
+        return getPlayerCount(state, active == getActivePlayer(state));
+//        return (int) ((state >>> (((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) == active) ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT)) & COUNT_MASK);
     }
 
     public static boolean getActivePlayer(long state) {
@@ -252,7 +253,7 @@ public class Board {
 
     static long placeWithMask(long state, int mask, boolean active) {
         state |= (((long) mask) << getMaskOffset(state, active));
-        state -= (1L << ((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT));
+        state -= (1L << (((((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0) == active) ? OFFSET_TRUE_COUNT : OFFSET_FALSE_COUNT));
 
         if (isMillMaker(state, mask, active)) {
             return setBit(state, OFFSET_IS_REMOVE_TURN);

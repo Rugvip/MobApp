@@ -15,11 +15,24 @@ public class WelcomeActivity extends Activity {
     DatabaseConnection db = new DatabaseConnection(this);
     private Button newGameButton;
     private Button loadGameButton;
+    private long continueState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.welcome_activity);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        continueState = PreferenceManager.getDefaultSharedPreferences(this).getLong("saved_state", 0L);
+        if (continueState == 0) {
+            Button continueView = (Button) findViewById(R.id.continueGameButton);
+            continueView.setEnabled(false);
+        }
+        Log.e("Wat", "state: " + Long.toBinaryString(continueState));
     }
 
     public void resetDatabase(View view) {
@@ -31,7 +44,13 @@ public class WelcomeActivity extends Activity {
 
     public void newGameListener(View view) {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("loadFile", false);
+        startActivity(intent);
+    }
+
+    public void continueGameListener(View view) {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("state", continueState);
+        Log.e("Continue", "intent with extra: " + Long.toBinaryString(continueState));
         startActivity(intent);
     }
 

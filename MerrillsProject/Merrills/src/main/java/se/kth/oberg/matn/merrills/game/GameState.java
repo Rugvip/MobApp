@@ -12,13 +12,14 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
     private int selectedIndex = -1;
     private long state;
     private boolean ai;
+    private SharedPreferences sharedPreferences;
 
     public GameState(Context context) {
         state = Board.createBoard(false, true);
         Log.i("new board", Long.toBinaryString(state | (1L << 63)));
         Log.i("new board", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
         ai = sharedPreferences.getBoolean("AI", false);
     }
@@ -73,6 +74,7 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
             default:
                 throw new IllegalStateException("unknown action");
         }
+        sharedPreferences.edit().putLong("saved_state", state).apply();
     }
 
     public void doPosition(int index) {

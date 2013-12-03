@@ -3,14 +3,14 @@ package se.kth.oberg.matn.merrills.game;
 import android.util.Log;
 
 public class Ai {
-    private static final int DEPTH_DEEP = 2;
+    private static final int DEPTH_DEEP = 1;
     private static final int DEPTH_SHALLOW = 1;
 
     private static final int INITIAL_MULT = 16;
 
     private static final int SCORE_PIECE = 1;
     private static final int SCORE_FREEDOM = 2;
-    private static final int SCORE_MILL_MAKER = 1;
+    private static final int SCORE_MILL_MAKER = 20;
     private static final int SCORE_MILL = 10;
     private static final int SCORE_WIN = 1000;
 
@@ -56,6 +56,7 @@ public class Ai {
 
 //        return pieceScore + moveScore + millScore + millMakerScore + winScore;
 //        return pieceScore + moveScore + millScore + millMakerScore;
+        Log.e("TOTAL SCORE", "" + (pieceScore + moveScore + millScore));
         return pieceScore + moveScore + millScore;
     }
 
@@ -95,18 +96,10 @@ public class Ai {
 
     private static int negamax(long state, int depth, int color) {
         if (depth <= 0) {
-            return color * scoreState(state, false);
+            return color * scoreState(state, true);
         }
 
-        int firstScore = Integer.MIN_VALUE;
-        long firstMove = 0;
-        int secondScore = Integer.MIN_VALUE;
-        long secondMove = 0;
-
-        int shallow = depth;
-        if (shallow > DEPTH_SHALLOW) {
-            shallow = DEPTH_SHALLOW;
-        }
+        int topScore = Integer.MIN_VALUE;
 
         switch (Board.getCurrentAction(state)) {
             case Board.ACTION_MOVE: {
@@ -129,22 +122,12 @@ public class Ai {
                                 masks &= masks - 1;
 
                                 long remove = Board.removeWithMask(move, mask, true);
-                                int score = -negamax(remove, shallow - 1, -color);
-                                if (score > firstScore) {
-                                    secondScore = firstScore;
-                                    secondMove = firstMove;
-                                    firstScore = score;
-                                    firstMove = remove;
-                                }
+                                int score = -negamax(remove, depth - 1, -color) + SCORE_MILL_MAKER;
+                                topScore = score > topScore ? score : topScore;
                             }
                         } else {
-                            int score = -negamax(move, shallow - 1, -color);
-                            if (score > firstScore) {
-                                secondScore = firstScore;
-                                secondMove = firstMove;
-                                firstScore = score;
-                                firstMove = move;
-                            }
+                            int score = -negamax(move, depth - 1, -color);
+                            topScore = score > topScore ? score : topScore;
                         }
                     }
                 }
@@ -165,22 +148,13 @@ public class Ai {
                             masks &= masks - 1;
 
                             long remove = Board.removeWithMask(move, mask, true);
-                            int score = -negamax(remove, shallow - 1, -color);
-                            if (score > firstScore) {
-                                secondScore = firstScore;
-                                secondMove = firstMove;
-                                firstScore = score;
-                                firstMove = remove;
-                            }
+                            int score = -negamax(remove, depth - 1, -color) + SCORE_MILL_MAKER;
+                            topScore = score > topScore ? score : topScore;
                         }
                     } else {
-                        int score = -negamax(move, shallow - 1, -color);
-                        if (score > firstScore) {
-                            secondScore = firstScore;
-                            secondMove = firstMove;
-                            firstScore = score;
-                            firstMove = move;
-                        }
+                        int score = -negamax(move, depth - 1, -color);
+                        Log.i("SCORE", "SCORE: " + score);
+                        topScore = score > topScore ? score : topScore;
                     }
                 }
                 break;
@@ -191,19 +165,7 @@ public class Ai {
                 throw new IllegalStateException("illegal action");
         }
 
-        if (depth > DEPTH_SHALLOW) {
-            firstScore = -negamax(firstMove, depth - 1, -color);
-
-            if (secondMove != 0) {
-                secondScore = -negamax(secondMove, depth - 1, -color);
-
-                return firstScore > secondScore ? firstScore : secondScore;
-            } else {
-                return firstScore;
-            }
-        } else {
-            return firstScore;
-        }
+        return topScore;
     }
 
     public static int evaluateMove(long state, int deep, int shallow) {
@@ -334,8 +296,8 @@ public class Ai {
     }
 
     public static long makeMove(long state, boolean aiPlayer) {
-        int maxScore = Integer.MIN_VALUE;
-        long maxMove = 0;
+        int topScore = Integer.MIN_VALUE;
+        long topMove = 0;
 
         switch (Board.getCurrentAction(state)) {
             case Board.ACTION_MOVE: {
@@ -359,9 +321,9 @@ public class Ai {
 
                                 long remove = Board.removeWithMask(move, mask, true);
                                 int score = negamax(remove, DEPTH_DEEP, 1);
-                                if (score > maxScore) {
-                                    maxScore = score;
-                                    maxMove = remove;
+                                if (score > topScore) {
+                                    topScore = score;
+                                    topMove = remove;
                                 }
                                 Log.w("Ai", "made remove with score: " + score);
                                 Log.w("Ai", Long.toBinaryString(remove | (1L << 63)));
@@ -369,9 +331,9 @@ public class Ai {
                             }
                         } else {
                             int score = negamax(move, DEPTH_DEEP, 1);
-                            if (score > maxScore) {
-                                maxScore = score;
-                                maxMove = move;
+                            if (score > topScore) {
+                                topScore = score;
+                                topMove = move;
                             }
                             Log.w("Ai", "made move with score: " + score);
                             Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
@@ -397,20 +359,20 @@ public class Ai {
                             masks &= masks - 1;
 
                             long remove = Board.removeWithMask(move, mask, true);
-                            int score = negamax(remove, DEPTH_DEEP, 1);
-                            if (score > maxScore) {
-                                maxScore = score;
-                                maxMove = remove;
+                            int score = -negamax(remove, DEPTH_DEEP, -1);
+                            if (score > topScore) {
+                                topScore = score;
+                                topMove = remove;
                             }
                             Log.w("Ai", "made remove with score: " + score);
                             Log.w("Ai", Long.toBinaryString(remove | (1L << 63)));
                             Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
                         }
                     } else {
-                        int score = negamax(move, DEPTH_DEEP, 1);
-                        if (score > maxScore) {
-                            maxScore = score;
-                            maxMove = move;
+                        int score = -negamax(move, DEPTH_DEEP, -1);
+                        if (score > topScore) {
+                            topScore = score;
+                            topMove = move;
                         }
                         Log.w("Ai", "made move with score: " + score);
                         Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
@@ -431,9 +393,9 @@ public class Ai {
 //                    Log.w("Ai", "made move with score: " + score);
 //                    Log.w("Ai", Long.toBinaryString(move | (1L << 63)));
 //                    Log.w("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
-//                    if (score > maxScore) {
-//                        maxScore = score;
-//                        maxMove = move;
+//                    if (score > topScore) {
+//                        topScore = score;
+//                        topMove = move;
 //                    }
 //                }
 //                break;
@@ -445,10 +407,10 @@ public class Ai {
                 throw new IllegalStateException("illegal action");
         }
 
-        Log.e("Ai", "best move was: " + maxScore);
-        Log.e("Ai", Long.toBinaryString(maxMove | (1L << 63)));
+        Log.e("Ai", "best move was: " + topScore);
+        Log.e("Ai", Long.toBinaryString(topMove | (1L << 63)));
         Log.e("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
 
-        return maxMove;
+        return topMove;
     }
 }

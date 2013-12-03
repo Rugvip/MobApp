@@ -11,6 +11,13 @@
         android:id="@+id/newGameButton"
         android:layout_gravity="center_horizontal"
         android:onClick="newGameListener"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Continue Game"
+        android:id="@+id/continueGameButton"
+        android:layout_gravity="center_horizontal"
+        android:onClick="continueGameListener"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -20,7 +27,7 @@
         android:layout_gravity="center_horizontal"
         android:onClick="loadGameListener"/>
 
-    <EditText
+    <TextView
         android:layout_width="wrap_content"
         android:textSize="14dp"
         android:layout_height="wrap_content"

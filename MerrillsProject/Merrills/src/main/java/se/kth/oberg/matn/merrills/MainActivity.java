@@ -30,20 +30,21 @@ public class MainActivity extends Activity {
         view = new BoardView(this, gameState);
         setContentView(view);
 
-        long savedState = 0;
+        long state;
 
         if (savedInstanceState != null) {
-            savedState = savedInstanceState.getLong("saved_state");
-            Log.i("Restore", Long.toBinaryString(savedState));
+            state = savedInstanceState.getLong("saved_state");
+            Log.i("Restore", Long.toBinaryString(state));
         } else {
-            savedState = PreferenceManager.getDefaultSharedPreferences(this).getLong("saved_state", 0L);
-            Log.i("Continue", Long.toBinaryString(savedState));
-            view.reset();
+            state = getIntent().getLongExtra("state", 0L);
+            Log.i("Continue", Long.toBinaryString(state));
         }
 
-        if (savedState != 0) {
-            gameState.load(savedState);
-            view.load(savedState);
+        if (state != 0) {
+            gameState.load(state);
+            view.load(state);
+        } else {
+            view.reset();
         }
 
         view.setOnTouchListener(new PiecePokeListener() {
@@ -73,6 +74,7 @@ public class MainActivity extends Activity {
         PreferenceManager.getDefaultSharedPreferences(this)
                 .edit().putLong("saved_state", gameState.getState())
                 .apply();
+        Log.i("Saved pref", Long.toBinaryString(gameState.getState()));
         Log.e("Activity", "onStop");
     }
 
