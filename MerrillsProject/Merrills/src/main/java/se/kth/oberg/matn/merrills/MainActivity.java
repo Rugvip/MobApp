@@ -10,6 +10,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 import android.widget.EditText;
 
 import android.widget.EditText;
@@ -24,8 +25,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         gameState = new GameState(this);
         new GameLogger(gameState);
@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
         view.setOnTouchListener(new PiecePokeListener() {
             @Override
             public void onPiecePoke(int id, float pieceX, float pieceY) {
-                gameState.doPosition(id);
+            gameState.doPosition(id);
             }
         });
     }
@@ -84,7 +84,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        saveGame("Autosave");
         Log.e("Activity", "onPause");
     }
 
@@ -139,9 +138,5 @@ public class MainActivity extends Activity {
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void saveGame(String name) {
-
     }
 }

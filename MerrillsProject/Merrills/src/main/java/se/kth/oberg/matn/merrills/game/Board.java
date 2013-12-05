@@ -1,7 +1,5 @@
 package se.kth.oberg.matn.merrills.game;
 
-import android.util.Log;
-
 public class Board {
     private static final long MASK_MASK = 0xFFFFFFL;
     private static final int INT_MASK_MASK = 0xFFFFFF;
@@ -15,13 +13,14 @@ public class Board {
     private static final int OFFSET_IS_REMOVE_TURN = 59;
     private static final int OFFSET_ALLOW_REMOVE_MILL = 60;
     private static final int OFFSET_ALLOW_FLIGHT = 61;
-    private static final int OFFSET_UNUSED_2 = 62;
+    private static final int OFFSET_FLAG = 62;
     private static final int OFFSET_UNUSED_3 = 63;
 
     public static final int ACTION_WON = 1 << 0;
     public static final int ACTION_PLACE = 1 << 1;
     public static final int ACTION_MOVE = 1 << 2;
     public static final int ACTION_REMOVE = 1 << 3;
+    public static final int ACTION_LOST = 1 << 4;
 
     public static long createBoard(boolean allowRemoveMill, boolean allowFlight) {
         long state = 0;
@@ -39,6 +38,18 @@ public class Board {
         } else {
             return clearBit(state, offset);
         }
+    }
+
+    public static boolean isFlagSet(long state) {
+        return getBit(state, OFFSET_FLAG);
+    }
+
+    public static long setFlag(long state) {
+        return setBit(state, OFFSET_FLAG);
+    }
+
+    public static long clearFlag(long state) {
+        return clearBit(state, OFFSET_FLAG);
     }
 
     private static long setBit(long state, int offset) {
@@ -132,6 +143,8 @@ public class Board {
     public static int getCurrentAction(long state) {
         if (isWinner(state, true)) {
             return ACTION_WON;
+        } else if (isWinner(state, false)) {
+            return ACTION_LOST;
         } else if (getBit(state, OFFSET_IS_REMOVE_TURN)) {
             return ACTION_REMOVE;
         } else if (((state >>> OFFSET_ACTIVE_PLAYER) & 1) != 0 ? ((state >>> OFFSET_TRUE_COUNT) & COUNT_MASK) > 0 :  ((state >>> OFFSET_FALSE_COUNT) & COUNT_MASK) > 0) {

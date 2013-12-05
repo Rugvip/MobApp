@@ -15,7 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import se.kth.oberg.matn.merrills.Dimensions;
-import se.kth.oberg.matn.merrills.R;
 import se.kth.oberg.matn.merrills.game.Board;
 import se.kth.oberg.matn.merrills.game.GameState;
 import se.kth.oberg.matn.merrills.game.PieceAddListener;
@@ -26,10 +25,10 @@ import se.kth.oberg.matn.merrills.game.TurnListener;
 import se.kth.oberg.matn.merrills.game.TurnType;
 
 public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
-    private PieceView[] pieces = new PieceView[24];
-    private List<PieceView> removedPieces = new ArrayList<>();
-    private LinkedList<PieceView> trueQueue = new LinkedList<>();
-    private LinkedList<PieceView> falseQueue = new LinkedList<>();
+    private final PieceView[] pieces = new PieceView[24];
+    private final List<PieceView> removedPieces = new ArrayList<>();
+    private final LinkedList<PieceView> trueQueue = new LinkedList<>();
+    private final LinkedList<PieceView> falseQueue = new LinkedList<>();
     private Thread mainThread;
     private GameState gameState;
     private Drawable backgroundDrawable;
@@ -75,7 +74,24 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
             }
         }
 
-        turnString = TurnType.PLACE.toString();
+        switch (Board.getCurrentAction(savedGameState)) {
+            case Board.ACTION_REMOVE:
+                turnString = TurnType.REMOVE.toString();
+                break;
+            case Board.ACTION_MOVE:
+                turnString = TurnType.CHOOSE_FROM.toString();
+                break;
+            case Board.ACTION_PLACE:
+                turnString = TurnType.PLACE.toString();
+                break;
+            case Board.ACTION_WON:
+                turnString = TurnType.WIN.toString();
+                break;
+            case Board.ACTION_LOST:
+            default:
+                throw new IllegalStateException("illegal action");
+        }
+        turnString = (activePlayer ? "Player 1: " : "Player 2: ") + turnString;
         turnPaint = activePlayer ? trueTurnPaint : falseTurnPaint;
     }
 
@@ -216,7 +232,7 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
         @Override
         public void onTurn(boolean player, TurnType type) {
             turnPaint = player ? trueTurnPaint : falseTurnPaint;
-            turnString = type.toString();
+            turnString = (player ? "Player 1: " : "Player 2: ") + type.toString();
         }
     };
 
@@ -285,19 +301,15 @@ public class BoardView extends SurfaceView implements SurfaceHolder.Callback{
                         }
                     }
 
-                    synchronized (gameState) {
-                        Markers.GREEN.draw(canvas, gameState.getSelectionMoveMask(), seven);
-                        Markers.GREEN.draw(canvas, gameState.getMoveMask(), seven);
-                        Markers.CROSS.draw(canvas, gameState.getDeleteMask(), seven);
-                    }
+                    Markers.GREEN.draw(canvas, gameState.getSelectionMoveMask(), seven);
+                    Markers.GREEN.draw(canvas, gameState.getMoveMask(), seven);
+                    Markers.CROSS.draw(canvas, gameState.getDeleteMask(), seven);
 
                     if (turnString != null) {
-                        synchronized (turnString) {
-                            turnPaint.setStrokeWidth(0.2f * seven);
-                            turnPaint.setTextSize(seven * 0.5f);
-                            turnPaint.setTextAlign(Paint.Align.CENTER);
-                            canvas.drawText(turnString, 3.5f * seven, 8.5f * seven, turnPaint);
-                        }
+                        turnPaint.setStrokeWidth(0.2f * seven);
+                        turnPaint.setTextSize(seven * 0.4f);
+                        turnPaint.setTextAlign(Paint.Align.CENTER);
+                        canvas.drawText(turnString, 3.5f * seven, 8.5f * seven, turnPaint);
                     }
                 } else {
                     break;

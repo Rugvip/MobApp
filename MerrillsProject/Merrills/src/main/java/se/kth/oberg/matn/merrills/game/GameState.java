@@ -1,9 +1,11 @@
 package se.kth.oberg.matn.merrills.game;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Window;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,14 +17,18 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
     private boolean ai;
     private SharedPreferences sharedPreferences;
     private boolean aiMoving = false;
+    private Activity activity;
 
-    public GameState(Context context) {
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+    public GameState(Activity activity) {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
         ai = sharedPreferences.getBoolean("AI", false);
 
         state = Board.createBoard(sharedPreferences.getBoolean("remove_mills", false),
                 sharedPreferences.getBoolean("allow_flight", true));
+
+        this.activity = activity;
+
         Log.i("new board", Long.toBinaryString(state | (1L << 63)));
         Log.i("new board", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
     }
@@ -36,6 +42,7 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
         boolean active = Board.getActivePlayer(before);
         boolean swapped = active != Board.getActivePlayer(after);
         int removeMask = Board.getMask(diff, !active);
+        int removeMask2 = Board.getMask(diff, active);
         switch (Board.getCurrentAction(before)) {
             case Board.ACTION_PLACE:
                 notifyAdded(Board.getActivePlayer(before), Board.getBitIndex(Board.getPlayerMask(diff, active)));
@@ -49,8 +56,8 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
             case Board.ACTION_REMOVE:
                 break;
             case Board.ACTION_WON:
-                if (removeMask != 0) {
-                    notifyRemoved(Board.getBitIndex(removeMask));
+                if (removeMask2 != 0) {
+                    notifyRemoved(Board.getBitIndex(removeMask2));
                 }
                 break;
             default:
@@ -111,6 +118,7 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
     private void doAi() {
         if (Board.getCurrentAction(state) != Board.ACTION_WON && Board.getActivePlayer(state) == AI_PLAYER) {
             aiMoving = true;
+            activity.setProgressBarIndeterminateVisibility(true);
             Ai ai = new Ai() {
                 @Override
                 protected void onPostExecute(Long move) {
@@ -118,10 +126,7 @@ public class GameState implements SharedPreferences.OnSharedPreferenceChangeList
                         throw new IllegalStateException("Ai move failed");
                     }
 
-                    Log.i("Ai", "Made move");
-                    Log.i("Ai", Long.toBinaryString(state | (1L << 63)));
-                    Log.i("Ai", Long.toBinaryString(move | (1L << 63)));
-                    Log.i("Ai", Long.toBinaryString(0b10000011111000000000000000000000000111111111111111111111111L | (1L << 63)));
+                    activity.setProgressBarIndeterminateVisibility(false);
 
                     notifyDiff(state, move);
                     state = move;
