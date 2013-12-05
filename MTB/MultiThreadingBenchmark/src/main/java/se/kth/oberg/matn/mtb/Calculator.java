@@ -6,7 +6,11 @@ import android.util.Log;
 import java.text.DecimalFormat;
 
 public class Calculator extends AsyncTask<Integer, Void, Long> {
-    private static final int DEPTH = 16;
+    private static int DEPTH = 16;
+
+    public static void setDepth(int depth) {
+        DEPTH = depth;
+    }
 
     private static double doWork(double in, int depth) {
         if (depth <= 0) {
