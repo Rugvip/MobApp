@@ -56,7 +56,7 @@ public class FirstTestFragment extends Fragment {
 
                 final int finalRepeat = repeat;
 
-                new Benchmarker(8, 15, 5) {
+                new Benchmarker(8, 8, 5) {
                     @Override
                     public void onDone(long averageTime) {
                         runBenchmarks(finalRepeat);
