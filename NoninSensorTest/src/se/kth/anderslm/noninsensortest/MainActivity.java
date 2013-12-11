@@ -1,5 +1,6 @@
 package se.kth.anderslm.noninsensortest;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import android.os.Bundle;
@@ -10,6 +11,10 @@ import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,6 +22,21 @@ public class MainActivity extends Activity implements PollCallback {
 
 	public static final int REQUEST_ENABLE_BT = 42;
 	private PollDataTask pollDataThread;
+	private BluetoothAdapter bluetoothAdapter = null;
+	private BluetoothDevice noninDevice = null;
+
+	private ListView deviceList;
+	private DeviceAdapter deviceAdapter = new DeviceAdapter(this);
+
+	private OnItemClickListener listClick = new OnItemClickListener() {
+		@Override
+		public void onItemClick(AdapterView<?> adapterView, View view, int i,
+				long l) {
+			noninDevice = (BluetoothDevice) deviceAdapter.getItem(i);
+		}
+	};
+
+	private TextView dataView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +44,9 @@ public class MainActivity extends Activity implements PollCallback {
 		setContentView(R.layout.activity_main);
 
 		dataView = (TextView) findViewById(R.id.dataView);
+
+		deviceList = (ListView) findViewById(R.id.deviceList);
+		deviceList.setOnItemClickListener(listClick);
 
 		bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (bluetoothAdapter == null) {
@@ -97,27 +120,21 @@ public class MainActivity extends Activity implements PollCallback {
 		noninDevice = null;
 		Set<BluetoothDevice> pairedBTDevices = bluetoothAdapter
 				.getBondedDevices();
+
 		if (pairedBTDevices.size() > 0) {
-			// the last Nonin device, if any, will be selected...
+
+			ArrayList<BluetoothDevice> temp = new ArrayList<BluetoothDevice>();
+
 			for (BluetoothDevice device : pairedBTDevices) {
-				String name = device.getName();
-				if (name.contains("Nonin")) {
-					noninDevice = device;
-					showToast("Paired device: " + name);
-					return;
+				if (device.getName().contains("Nonin")) {
+					temp.add(device);
 				}
 			}
+			deviceAdapter.updateDevices(temp);
+			deviceList.setAdapter(deviceAdapter);
 		}
-		if (noninDevice == null) {
-			showToast("No paired Nonin devices found!\r\n"
-					+ "Please pair a Nonin BT device with this device.");
-		}
+		noninDevice = (BluetoothDevice) deviceList.getSelectedItem();
 	}
-
-	private BluetoothAdapter bluetoothAdapter = null;
-	private BluetoothDevice noninDevice = null;
-
-	private TextView dataView;
 
 	void showToast(final CharSequence msg) {
 		Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
@@ -133,7 +150,7 @@ public class MainActivity extends Activity implements PollCallback {
 
 	@Override
 	public void displayResults(final CharSequence results) {
-//		Log.e("displayResults", "Callback! " + results);
+		// Log.e("displayResults", "Callback! " + results);
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {

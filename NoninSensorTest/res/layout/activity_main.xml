@@ -28,4 +28,13 @@
         android:text="@string/data"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
+    <ListView
+        android:id="@+id/deviceList"
+        android:layout_below="@+id/dataView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" >
+    </ListView>
+
 </RelativeLayout>
