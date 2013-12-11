@@ -1,91 +1,121 @@
 package se.kth.oberg;
 
+import java.util.Set;
+
+import android.os.Bundle;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
-import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Set;
-import java.util.UUID;
+public class MainActivity extends Activity {
 
-public class MainActivity extends ActionBarActivity {
-    private BluetoothSocket btSocket;
-    private BluetoothAdapter btAdapter;
-    private BluetoothDevice btDevice;
-    private int REQ_ENABLE_BT = 1;
-    private BluetoothDevice[] pairedDevices;
-    private ListView deviceList;
-    private AdapterView.OnItemClickListener listClick = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            Log.e("onItemClick", "asd " + pairedDevices[i].getAddress());
-            connectDevice();
-        }
-    };
-
-    private void connectDevice() {
-        btSocket = btDevice.createRfcommSocketToServiceRecord(new UUID())
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (resultCode) {
-            case RESULT_OK:
-                break;
-            case RESULT_CANCELED:
-                break;
-        }
-        Log.e("onActivityResult", "requestCode: " + requestCode + " resultcode: " + resultCode);
-    }
+    public static final int REQUEST_ENABLE_BT = 42;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        deviceList = (ListView) findViewById(R.id.deviceList);
-        btAdapter = BluetoothAdapter.getDefaultAdapter();
-        deviceList.setOnItemClickListener(listClick);
 
+        dataView = (TextView) findViewById(R.id.dataView);
 
-        Set<BluetoothDevice> deviceSet = btAdapter.getBondedDevices();
-
-        if (btAdapter != null) {
-            if (!btAdapter.isEnabled()) {
-                startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), REQ_ENABLE_BT);
-            }
-            pairedDevices = deviceSet.toArray(new BluetoothDevice[deviceSet.size()]);
-            deviceList.setAdapter(new ArrayAdapter<BluetoothDevice>(this,android.R.layout.simple_list_item_1,pairedDevices));
-
-        } else {
-            Toast.makeText(this, "Could not find BluetoothAdapter", Toast.LENGTH_LONG);
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            showToast("This device do not support Bluetooth");
+            this.finish();
         }
-
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        dataView.setText(R.string.data);
+        initBluetooth();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // TODO: stop ongoing BT communication
+    }
+
+    public void onPollButtonClicked(View view) {
+        if (noninDevice != null) {
+            new PollDataTask(this, noninDevice).execute();
+        } else {
+            showToast("No Nonin sensor found");
+        }
+    }
+
+
+    protected void displayData(CharSequence data) {
+        dataView.setText(data);
+    }
+
+    private void initBluetooth() {
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(
+                    BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        } else {
+            getNoninDevice();
+        }
+    }
+
+    // callback for BluetoothAdapter.ACTION_REQUEST_ENABLE (called via
+    // initBluetooth)
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent result) {
+        super.onActivityResult(requestCode, resultCode, result);
+
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (bluetoothAdapter.isEnabled()) {
+                getNoninDevice();
+            } else {
+                showToast("Bluetooth is turned off.");
+            }
+        }
+    }
+
+    private void getNoninDevice() {
+        noninDevice = null;
+        Set<BluetoothDevice> pairedBTDevices = bluetoothAdapter
+                .getBondedDevices();
+        if (pairedBTDevices.size() > 0) {
+            // the last Nonin device, if any, will be selected...
+            for (BluetoothDevice device : pairedBTDevices) {
+                String name = device.getName();
+                if (name.contains("Nonin")) {
+                    noninDevice = device;
+                    showToast("Paired device: " + name);
+                    return;
+                }
+            }
+        }
+        if (noninDevice == null) {
+            showToast("No paired Nonin devices found!\r\n"
+                    + "Please pair a Nonin BT device with this device.");
+        }
+    }
+
+    private BluetoothAdapter bluetoothAdapter = null;
+    private BluetoothDevice noninDevice = null;
+
+    private TextView dataView;
+
+    void showToast(final CharSequence msg) {
+        Toast toast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
+        toast.show();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }
