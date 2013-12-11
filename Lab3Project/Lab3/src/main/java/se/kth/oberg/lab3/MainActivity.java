@@ -2,8 +2,6 @@ package se.kth.oberg.lab3;
 
 import android.app.Activity;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,13 +10,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements SensorEventListener, Callbacks {
+public class MainActivity extends Activity implements FlowerFlexListener, FlowerShrivelListener {
 
-    private Acceleration acceleration = new Acceleration(this);
+    private FlowerFlexSensor ffs = new FlowerFlexSensor(this);
+    private FlowerShrivelSensor fss = new FlowerShrivelSensor(this);
     private TextView dataOutput;
     private SensorManager mSensorManager;
-    private Sensor mSensor;
-
 
     private ProgressBar progressBar;
 
@@ -35,15 +32,15 @@ public class MainActivity extends Activity implements SensorEventListener, Callb
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(ffs, mSensorManager.getDefaultSensor(FlowerFlexSensor.SENSOR_TYPE), SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(fss, mSensorManager.getDefaultSensor(FlowerShrivelSensor.SENSOR_TYPE), SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mSensorManager.unregisterListener(this);
+        mSensorManager.unregisterListener(ffs);
+        mSensorManager.unregisterListener(fss);
     }
 
     @Override
@@ -62,28 +59,12 @@ public class MainActivity extends Activity implements SensorEventListener, Callb
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
-
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-
-        switch(sensorEvent.sensor.getType()){
-            case Sensor.TYPE_ACCELEROMETER:
-            acceleration.accelerator(sensorEvent);
-        }
-
-
-    }
-
-    @Override
-    public void callbackShaked() {
-        Toast.makeText(this,"Shaked!",Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void callbackAngle(double angle) {
+    public void onFlex(double angle) {
         progressBar.setProgress((int) angle + 90);
+    }
+
+    @Override
+    public void onShrivel() {
+        Toast.makeText(this,"Shaked!",Toast.LENGTH_SHORT).show();
     }
 }
