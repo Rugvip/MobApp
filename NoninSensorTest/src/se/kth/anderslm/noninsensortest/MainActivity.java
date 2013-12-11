@@ -7,14 +7,16 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements PollCallback {
 
 	public static final int REQUEST_ENABLE_BT = 42;
+	private PollDataTask pollDataThread;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +40,15 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
+	protected void onPause() {
+		super.onPause();
+		try {
+			pollDataThread.interrupt();
+		} catch (Exception e) {
+		}
+	}
+
+	@Override
 	protected void onStop() {
 		super.onStop();
 		// TODO: stop ongoing BT communication
@@ -45,12 +56,13 @@ public class MainActivity extends Activity {
 
 	public void onPollButtonClicked(View view) {
 		if (noninDevice != null) {
-			new PollDataTask(this, noninDevice).execute();
+			Log.e("onPollbuttoncicked", "About to start thread");
+			pollDataThread = new PollDataTask(this, noninDevice);
+			pollDataThread.start();
 		} else {
 			showToast("No Nonin sensor found");
 		}
 	}
-	
 
 	protected void displayData(CharSequence data) {
 		dataView.setText(data);
@@ -117,5 +129,16 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+
+	@Override
+	public void displayResults(final CharSequence results) {
+//		Log.e("displayResults", "Callback! " + results);
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				dataView.setText(results);
+			}
+		});
 	}
 }
