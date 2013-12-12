@@ -6,6 +6,7 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -33,7 +34,8 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
     private float unit = 0;
     private float angle;
     private Petal[] petals = new Petal[PETAL_COUNT];
-    private boolean borked = false;
+    private boolean broken = false;
+    private Drawable leaf;
 
     public Flower(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -41,13 +43,15 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
         SurfaceHolder holder = getHolder();
         assert holder != null;
 
+        leaf = context.getResources().getDrawable(R.drawable.leaf_levels);
+
         holder.addCallback(new FlowerPot());
     }
 
     @Override
     public void onShake() {
         Log.i("Flower", "exterminate");
-        if (borked) {
+        if (broken) {
             return;
         }
 
@@ -57,8 +61,8 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
 
         for (int i = 0; i < STEM_SIZE; i++) {
             startA -= angle * STEM_SEGMENT_FLEXIBILITY;
-            startX += Math.sin(Math.toRadians(startA)) *  STEM_SEGMENT_HEIGHT;
-            startY -= Math.cos(Math.toRadians(startA)) *  STEM_SEGMENT_HEIGHT;
+            startX += Math.sin(Math.toRadians(startA)) * STEM_SEGMENT_HEIGHT;
+            startY -= Math.cos(Math.toRadians(startA)) * STEM_SEGMENT_HEIGHT;
         }
 
         for (int i = 0; i < PETAL_COUNT; i++) {
@@ -67,7 +71,7 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
                     startA + 90);
             startA += 360.0f / PETAL_COUNT;
         }
-        borked = true;
+        broken = true;
     }
 
 
@@ -84,6 +88,18 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
 
         canvas.save();
 
+        leaf.setLevel((int) (Math.abs(angle / 10)));
+        leaf.setBounds(0, -10, 10, 0);
+        leaf.draw(canvas);
+
+        canvas.save();
+        {
+            canvas.scale(-1, 1);
+            leaf.setBounds(0, -10, 10, 0);
+            leaf.draw(canvas);
+        }
+        canvas.restore();
+
         for (int i = 0; i < STEM_SIZE; i++) {
             canvas.rotate(-angle * STEM_SEGMENT_FLEXIBILITY);
             canvas.drawRect(-STEM_SEGMENT_WIDTH, -STEM_SEGMENT_HEIGHT, STEM_SEGMENT_WIDTH, 0.1f, STEM_PAINT);
@@ -92,7 +108,7 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
 
         canvas.drawCircle(0, 0, DISC_RADIUS, DISC_PAINT);
 
-        if (borked) {
+        if (broken) {
             canvas.restore();
 
             for (Petal petal : petals) {
@@ -136,6 +152,7 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
             velX = STRAY_X * (rand.nextFloat() - 0.5f);
             velY = STRAY_Y * (rand.nextFloat() - 0.5f);
         }
+
         private void draw(Canvas canvas) {
             canvas.save();
             {
@@ -146,6 +163,7 @@ public class Flower extends SurfaceView implements FlowerLeanListener, FlowerSha
             }
             canvas.restore();
         }
+
         private void update() {
             if (y < 0) {
                 y += GRAVITY * Math.cos(Math.toRadians(angle));

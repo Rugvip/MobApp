@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<level-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:maxLevel="0">
+        <rotate android:fromDegrees="0" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="1">
+        <rotate android:fromDegrees="3" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="2">
+        <rotate android:fromDegrees="6" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="3">
+        <rotate android:fromDegrees="9" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="4">
+        <rotate android:fromDegrees="12" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="5">
+        <rotate android:fromDegrees="15" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="6">
+        <rotate android:fromDegrees="18" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="7">
+        <rotate android:fromDegrees="21" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="8">
+        <rotate android:fromDegrees="24" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+    <item android:maxLevel="18">
+        <rotate android:fromDegrees="27" android:pivotX="0" android:pivotY="100%">
+            <bitmap android:src="@drawable/leaf"/>
+        </rotate>
+    </item>
+</level-list>
