@@ -9,6 +9,8 @@ import android.hardware.SensorManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import java.util.Arrays;
+
 public class SensorReader implements SensorEventListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String SENSOR_SETTING_KEY = "sensor";
     private static final int SENSOR_DELAY = SensorManager.SENSOR_DELAY_UI;
@@ -62,6 +64,7 @@ public class SensorReader implements SensorEventListener, SharedPreferences.OnSh
             case Sensor.TYPE_GYROSCOPE:
             case Sensor.TYPE_LINEAR_ACCELERATION:
             case Sensor.TYPE_MAGNETIC_FIELD:
+                Log.e("Data", "" + Arrays.toString(sensorEvent.values));
                 listener.onSensorValues(sensorEvent.values);
         }
     }
