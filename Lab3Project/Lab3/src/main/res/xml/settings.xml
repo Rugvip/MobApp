@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:title="Sensor"
+        android:entries="@array/sensor_names"
+        android:entryValues="@array/sensor_values"
+        android:defaultValue="acc"
+        android:key="sensor" />
+</PreferenceScreen>

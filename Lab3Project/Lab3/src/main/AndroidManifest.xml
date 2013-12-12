@@ -17,6 +17,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".GraphSurface"></activity>
         <activity android:name=".flower.FlowerActivity"></activity>
+        <activity android:name=".SettingsActivity"></activity>
         <activity android:name=".GraphActivity"></activity>
         <activity
             android:name="se.kth.oberg.lab3.MainActivity"
