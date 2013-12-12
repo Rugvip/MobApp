@@ -1,4 +1,4 @@
-package se.kth.oberg.lab3;
+package se.kth.oberg.lab3.graph;
 
 import android.content.Context;
 import android.content.SharedPreferences;

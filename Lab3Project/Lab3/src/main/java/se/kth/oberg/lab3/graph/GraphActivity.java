@@ -1,11 +1,13 @@
-package se.kth.oberg.lab3;
+package se.kth.oberg.lab3.graph;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import se.kth.oberg.lab3.R;
+import se.kth.oberg.lab3.SettingsActivity;
 
 public class GraphActivity extends Activity {
     private Graph graph;
