@@ -1,4 +1,4 @@
-package se.kth.oberg.lab3;
+package se.kth.oberg.lab3.flower;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -13,6 +13,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.util.Random;
+
+import se.kth.oberg.lab3.R;
 
 public class Flower extends SurfaceView implements FlowerLeanListener, FlowerShakeListener {
     private static final int STEM_SIZE = 20;

@@ -1,10 +1,12 @@
-package se.kth.oberg.lab3;
+package se.kth.oberg.lab3.flower;
 
 import android.app.Activity;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import se.kth.oberg.lab3.R;
 
 public class FlowerActivity extends Activity {
     private FlowerLeanSensor ffs = new FlowerLeanSensor();

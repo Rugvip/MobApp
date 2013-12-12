@@ -1,4 +1,4 @@
-package se.kth.oberg.lab3;
+package se.kth.oberg.lab3.flower;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
