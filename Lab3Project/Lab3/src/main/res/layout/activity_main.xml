@@ -16,4 +16,11 @@
         android:layout_height="wrap_content"
         android:text="flowa powa"
         android:onClick="flowerActivity"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="beep"
+        android:onClick="graphActivity"
+        />
 </LinearLayout>

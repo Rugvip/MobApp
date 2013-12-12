@@ -36,4 +36,8 @@ public class MainActivity extends Activity {
     public void flowerActivity(View view) {
         startActivity(new Intent(this, FlowerActivity.class));
     }
+
+    public void graphActivity(View view) {
+        startActivity(new Intent(this, GraphActivity.class));
+    }
 }

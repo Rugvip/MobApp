@@ -171,7 +171,6 @@ public class GraphRenderer implements GLSurfaceView.Renderer {
         Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
         Matrix.translateM(mModelMatrix, 0, asd.getX(), asd.getY(), 0);
         drawTrinagle(mTriangle1Vertices);
-        asd.addX(0.01f);
     }
 
     private float[] mMVPMatrix = new float[16];
