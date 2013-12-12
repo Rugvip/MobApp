@@ -8,7 +8,7 @@ import android.util.Log;
 public class FlowerShakeSensor implements SensorEventListener {
     public static final int SENSOR_TYPE = Sensor.TYPE_LINEAR_ACCELERATION;
 
-    private static final int THRESHOLD_MAGNITUDE = 10;
+    private static final int THRESHOLD_MAGNITUDE = 8;
     private static final long THRESHOLD_TIME = 1000;
     private static final float ALPHA = 0.9f;
 
@@ -17,7 +17,7 @@ public class FlowerShakeSensor implements SensorEventListener {
 
     private FlowerShakeListener flowerShakeListener;
 
-    public FlowerShakeSensor(FlowerShakeListener flowerShakeListener) {
+    public void setShakeListener(FlowerShakeListener flowerShakeListener) {
         this.flowerShakeListener = flowerShakeListener;
     }
 
@@ -29,6 +29,7 @@ public class FlowerShakeSensor implements SensorEventListener {
 
         float max = Math.max(Math.max(samples[0], samples[1]), samples[2]);
 
+//        Log.i("Sake", "max: " + max);
         if (max > THRESHOLD_MAGNITUDE) {
             if (System.currentTimeMillis() - startTime > THRESHOLD_TIME) {
                 startTime = System.currentTimeMillis();

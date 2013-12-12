@@ -3,20 +3,20 @@ package se.kth.oberg.lab3;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.util.FloatMath;
 import android.util.Log;
 
-public class FlowerFlexSensor implements SensorEventListener {
+public class FlowerLeanSensor implements SensorEventListener {
     public static final int SENSOR_TYPE = Sensor.TYPE_ACCELEROMETER;
 
-    private static final float ALPHA = 0.8f;
+    private static final float ALPHA = 0.9f;
 
     private float[] samples = new float[]{0.0f, 0.0f, 0.0f};
-    private double angle;
 
-    private FlowerFlexListener flowerFlexListener;
+    private FlowerLeanListener flowerLeanListener;
 
-    public FlowerFlexSensor(FlowerFlexListener flowerFlexListener) {
-        this.flowerFlexListener = flowerFlexListener;
+    public void setLeanListener(FlowerLeanListener flowerLeanListener) {
+        this.flowerLeanListener = flowerLeanListener;
     }
 
     @Override
@@ -26,12 +26,13 @@ public class FlowerFlexSensor implements SensorEventListener {
         samples[2] = ALPHA * samples[2] + (1 - ALPHA) * sensorEvent.values[2];
 //        Log.e("samples", "1: " + sensorEvent.values[0] + " 2: " + sensorEvent.values[1] + " 3: " + sensorEvent.values[2]);
 
-        angle = Math.atan2(samples[0], samples[1]) * (180.0 / Math.PI);
-        flowerFlexListener.onFlex(angle);
+        float angleX = (float) (Math.atan2(samples[2], samples[1]) * (180.0 / Math.PI));
+        float angleZ = (float) (Math.atan2(samples[0], samples[1]) * (180.0 / Math.PI));
+        flowerLeanListener.onFlex(angleX, angleZ);
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        Log.i("FlowerFlexSensor", "onAccuracyChanged: " + accuracy);
+        Log.i("FlowerLeanSensor", "onAccuracyChanged: " + accuracy);
     }
 }

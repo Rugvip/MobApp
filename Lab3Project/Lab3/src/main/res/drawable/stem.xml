@@ -1,20 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<rotate android:fromDegrees="0" android:pivotY="100%" xmlns:android="http://schemas.android.com/apk/res/android">
-    <inset android:insetTop="20dp" android:insetBottom="-10dp">
-
-    <shape android:shape="rectangle">
-        <gradient
-            android:startColor="#229933"
-            android:centerColor="#44CC55"
-            android:endColor="#229933"
-            android:type="linear"/>
-        <size android:height="100dp" android:width="5dp"/>
-        <corners
-            android:topLeftRadius="10dp"
-            android:topRightRadius="10dp"
-            android:bottomLeftRadius="10dp"
-            android:bottomRightRadius="10dp"/>
-    </shape>
-    </inset>
-</rotate>
+<shape android:shape="rectangle" xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:startColor="#229933"
+        android:centerColor="#44CC55"
+        android:endColor="#229933"
+        android:type="linear"/>
+    <size android:height="100dp" android:width="5dp"/>
+</shape>
