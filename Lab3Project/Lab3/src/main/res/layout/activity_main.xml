@@ -3,17 +3,18 @@
 android:layout_width="match_parent"
 android:layout_height="match_parent">
 
-    <Button
-        android:text="boop"
-        android:onClick="glActivity"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
+
     
     <se.kth.oberg.lab3.Flower
         android:id="@+id/flower"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <Button
+        android:text="boop"
+        android:onClick="glActivity"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
 
 <TextView
     android:id="@+id/textview_output"
