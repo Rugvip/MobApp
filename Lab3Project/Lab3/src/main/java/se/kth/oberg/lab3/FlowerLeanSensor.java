@@ -3,7 +3,6 @@ package se.kth.oberg.lab3;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.util.FloatMath;
 import android.util.Log;
 
 public class FlowerLeanSensor implements SensorEventListener {
@@ -26,9 +25,8 @@ public class FlowerLeanSensor implements SensorEventListener {
         samples[2] = ALPHA * samples[2] + (1 - ALPHA) * sensorEvent.values[2];
 //        Log.e("samples", "1: " + sensorEvent.values[0] + " 2: " + sensorEvent.values[1] + " 3: " + sensorEvent.values[2]);
 
-        float angleX = (float) (Math.atan2(samples[2], samples[1]) * (180.0 / Math.PI));
-        float angleZ = (float) (Math.atan2(samples[0], samples[1]) * (180.0 / Math.PI));
-        flowerLeanListener.onFlex(angleX, angleZ);
+        float angle = (float) (Math.atan2(samples[0], samples[1]) * (180.0 / Math.PI));
+        flowerLeanListener.onFlex(angle);
     }
 
     @Override

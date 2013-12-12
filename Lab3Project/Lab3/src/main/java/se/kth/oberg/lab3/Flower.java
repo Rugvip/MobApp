@@ -1,20 +1,39 @@
 package se.kth.oberg.lab3;
 
 import android.content.Context;
-import android.graphics.Camera;
 import android.graphics.Canvas;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
-import android.graphics.RectF;
-import android.graphics.drawable.Drawable;
+import android.graphics.RadialGradient;
+import android.graphics.Shader;
 import android.util.AttributeSet;
-import android.util.FloatMath;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class Flower extends SurfaceView implements FlowerLeanListener {
-    private final Drawable stem;
-    private final Drawable disc;
+import java.util.Random;
+
+public class Flower extends SurfaceView implements FlowerLeanListener, FlowerShakeListener {
+    private static final int STEM_SIZE = 20;
+    private static final float STEM_SEGMENT_HEIGHT = 2;
+    private static final float STEM_SEGMENT_WIDTH = 0.5f;
+    private static final float STEM_SEGMENT_FLEXIBILITY = 1 / 40.0f;
+    private static final float PETAL_OFFSET = 6;
+    private static final float PETAL_SCALE_X = 0.5f;
+    private static final float PETAL_SCALE_Y = 4;
+    private static final float DISC_RADIUS = 3;
+    private static final int PETAL_COUNT = 27;
+
+    private static Random rand = new Random();
+
+    private final Paint PETAL_PAINT = new Paint();
+    private final Paint STEM_PAINT = new Paint();
+    private final Paint DISC_PAINT = new Paint();
+
+    private float unit = 0;
+    private float angle;
+    private Petal[] petals = new Petal[PETAL_COUNT];
+    private boolean borked = false;
 
     public Flower(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -22,66 +41,128 @@ public class Flower extends SurfaceView implements FlowerLeanListener {
         SurfaceHolder holder = getHolder();
         assert holder != null;
 
-        stem = context.getResources().getDrawable(R.drawable.stem);
-        disc = context.getResources().getDrawable(R.drawable.disc);
-
         holder.addCallback(new FlowerPot());
     }
 
-    public void exterminate() {
+    @Override
+    public void onShake() {
         Log.i("Flower", "exterminate");
+        if (borked) {
+            return;
+        }
+
+        float startX = 0;
+        float startY = 0;
+        float startA = 0;
+
+        for (int i = 0; i < STEM_SIZE; i++) {
+            startA -= angle * STEM_SEGMENT_FLEXIBILITY;
+            startX += Math.sin(Math.toRadians(startA)) *  STEM_SEGMENT_HEIGHT;
+            startY -= Math.cos(Math.toRadians(startA)) *  STEM_SEGMENT_HEIGHT;
+        }
+
+        for (int i = 0; i < PETAL_COUNT; i++) {
+            petals[i] = new Petal(startX + (float) Math.cos(Math.toRadians(startA)) * PETAL_OFFSET,
+                    startY + (float) Math.sin(Math.toRadians(startA)) * PETAL_OFFSET,
+                    startA + 90);
+            startA += 360.0f / PETAL_COUNT;
+        }
+        borked = true;
     }
 
-    private float angleX;
-    private float angleZ;
 
     @Override
-    public void onFlex(float angleX, float angleZ) {
-        this.angleX = Math.abs(angleX / 12) ;
-        this.angleZ = angleZ / 3;
+    public void onFlex(float angle) {
+        this.angle = angle;
     }
 
     private void drawAPrettyFlower(Canvas canvas) {
-        int width = canvas.getWidth();
-        int height = canvas.getHeight();
-
         canvas.drawColor(0xFFFFFFFF);
 
-        canvas.translate(width / 2, height);
+        canvas.translate(canvas.getWidth() / 2, canvas.getHeight());
+        canvas.scale(unit, unit);
 
-        {
-            Camera camera = new Camera();
-            camera.translate(0, height / 4, height / 4);
-            camera.rotateX(angleX);
-            camera.rotateZ(angleZ);
-            camera.applyToCanvas(canvas);
+        canvas.save();
+
+        for (int i = 0; i < STEM_SIZE; i++) {
+            canvas.rotate(-angle * STEM_SEGMENT_FLEXIBILITY);
+            canvas.drawRect(-STEM_SEGMENT_WIDTH, -STEM_SEGMENT_HEIGHT, STEM_SEGMENT_WIDTH, 0.1f, STEM_PAINT);
+            canvas.translate(0, -STEM_SEGMENT_HEIGHT);
         }
 
-        stem.setBounds(-width / 40, -3 * height / 4, width / 40, 0);
-        stem.draw(canvas);
+        canvas.drawCircle(0, 0, DISC_RADIUS, DISC_PAINT);
 
-        canvas.translate(0, -3 * height / 4);
+        if (borked) {
+            canvas.restore();
 
-        disc.setBounds(-width / 10, - width / 10, width / 10, width / 10);
-        disc.draw(canvas);
+            for (Petal petal : petals) {
+                petal.draw(canvas);
+                petal.update();
+            }
+        } else {
+            for (int i = 0; i < PETAL_COUNT; i++) {
+                canvas.save();
+                {
+                    canvas.translate(0, -PETAL_OFFSET);
+                    canvas.scale(PETAL_SCALE_X, PETAL_SCALE_Y);
+                    canvas.drawRect(-1, -1, 1, 1, PETAL_PAINT);
+                }
+                canvas.restore();
+                canvas.rotate(360.0f / PETAL_COUNT);
+            }
 
-        for (int i = 0; i < NUM_PETALS; i++) {
-            canvas.drawOval(new RectF(-width/40, -width/3, width/40, -width/20), PETAL_PAINT);
-            canvas.rotate(360/NUM_PETALS);
+            canvas.restore();
         }
-
-        canvas.restore();
     }
 
-    private static final int NUM_PETALS = 15;
+    private class Petal {
+        private static final float GRAVITY = 0.6f;
+        private static final float STRAY_SPIN = 5f;
+        private static final float STRAY_X = 0.5f;
+        private static final float STRAY_Y = 0.5f;
 
-    private static final Paint PETAL_PAINT = new Paint(), STEM_PAINT = new Paint(), LEAF_PAINT = new Paint(), DISC_PAINT = new Paint();
+        private float x;
+        private float y;
+        private float a;
+        private float velA;
+        private float velX;
+        private float velY;
 
-    static {
-        PETAL_PAINT.setColor(0xFFFF4422);
-        STEM_PAINT.setColor(0xFF22AA33);
-        LEAF_PAINT.setColor(0xFF44BB55);
-        DISC_PAINT.setColor(0xFFCCCC22);
+        private Petal(float x, float y, float a) {
+            this.x = x;
+            this.y = y;
+            this.a = a;
+            velA = STRAY_SPIN * (rand.nextFloat() - 0.5f);
+            velX = STRAY_X * (rand.nextFloat() - 0.5f);
+            velY = STRAY_Y * (rand.nextFloat() - 0.5f);
+        }
+        private void draw(Canvas canvas) {
+            canvas.save();
+            {
+                canvas.translate(x, y);
+                canvas.rotate(a);
+                canvas.scale(PETAL_SCALE_X, PETAL_SCALE_Y);
+                canvas.drawRect(-1, -1, 1, 1, PETAL_PAINT);
+            }
+            canvas.restore();
+        }
+        private void update() {
+            if (y < 0) {
+                y += GRAVITY * Math.cos(Math.toRadians(angle));
+                x += -GRAVITY * Math.sin(Math.toRadians(angle));
+                a += velA;
+                x += velX;
+                y += velY;
+                velX /= 1.01f;
+                velY /= 1.01f;
+                velA /= 1.001f;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "(" + x + ", " + y + ")@" + angle;
+        }
     }
 
     private class FlowerPot implements SurfaceHolder.Callback {
@@ -97,6 +178,10 @@ public class Flower extends SurfaceView implements FlowerLeanListener {
         @Override
         public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
             Log.i("FlowerPot", "surfaceChanged, size: " + width + "x" + height + " format: " + format);
+            unit = height / 60;
+            STEM_PAINT.setShader(new LinearGradient(-STEM_SEGMENT_WIDTH, 0, STEM_SEGMENT_WIDTH, 0, new int[]{0xFF229933, 0xFF44CC55, 0xFF229933}, null, Shader.TileMode.CLAMP));
+            DISC_PAINT.setShader(new RadialGradient(0, 0, DISC_RADIUS, 0xFFFFCC22, 0xFFFFEE44, Shader.TileMode.CLAMP));
+            PETAL_PAINT.setShader(new RadialGradient(0, 0, 1, new int[]{0xFFFF0000, 0}, new float[]{0.99f, 1}, Shader.TileMode.CLAMP));
         }
 
         @Override

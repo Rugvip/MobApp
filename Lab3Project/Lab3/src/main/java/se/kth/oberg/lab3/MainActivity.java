@@ -2,53 +2,16 @@ package se.kth.oberg.lab3;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceView;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
-public class MainActivity extends Activity implements FlowerShakeListener {
-
-    private FlowerLeanSensor ffs = new FlowerLeanSensor();
-    private FlowerShakeSensor fss = new FlowerShakeSensor();
-    private TextView dataOutput;
-    private SensorManager mSensorManager;
-    private Flower flower;
-
-    private ProgressBar progressBar;
-
+public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        dataOutput = (TextView) findViewById(R.id.textview_output);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        flower = (Flower) findViewById(R.id.flower);
-        ffs.setLeanListener(flower);
-        fss.setShakeListener(this);
-
-        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mSensorManager.registerListener(ffs, mSensorManager.getDefaultSensor(FlowerLeanSensor.SENSOR_TYPE), SensorManager.SENSOR_DELAY_GAME);
-        mSensorManager.registerListener(fss, mSensorManager.getDefaultSensor(FlowerShakeSensor.SENSOR_TYPE), SensorManager.SENSOR_DELAY_GAME);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mSensorManager.unregisterListener(ffs);
-        mSensorManager.unregisterListener(fss);
     }
 
     @Override
@@ -66,13 +29,11 @@ public class MainActivity extends Activity implements FlowerShakeListener {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onShake() {
-        flower.exterminate();
-        Toast.makeText(this,"Shaked!",Toast.LENGTH_SHORT).show();
+    public void glActivity(View view) {
+        startActivity(new Intent(this, GraphSurface.class));
     }
 
-    public void glActivity(View view){
-        startActivity(new Intent(this, GraphSurface.class));
+    public void flowerActivity(View view) {
+        startActivity(new Intent(this, FlowerActivity.class));
     }
 }
