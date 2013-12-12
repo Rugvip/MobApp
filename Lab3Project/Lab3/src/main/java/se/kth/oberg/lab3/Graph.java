@@ -14,13 +14,13 @@ public class Graph extends SurfaceView implements GraphAccelerationListener {
     private SurfaceHolder holder = getHolder();
 
     private Paint ACCELERATION_BOX_X = new Paint();
-    private static final float RECT_SIZE = 15f;
+    private static final float RECT_SIZE = 50f;
 
     private float accelerationX, accelerationY, acecelerationZ;
 
     public Graph(Context context, AttributeSet attrs) {
         super(context, attrs);
-        ACCELERATION_BOX_X.setColor(0xFFCCFFCF);
+        ACCELERATION_BOX_X.setColor(0xFF0000FF);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class Graph extends SurfaceView implements GraphAccelerationListener {
         canvas.translate(canvas.getWidth() / 2, canvas.getHeight() / 2);
         canvas.save();
         Log.e("ased", "X: " + accelerationX + "Y: " + accelerationY + "Z: " + acecelerationZ);
-        canvas.drawRect((RECT_SIZE / 2) - accelerationX, (RECT_SIZE / 2) - accelerationY, (RECT_SIZE / 2) + accelerationX, (RECT_SIZE / 2) + accelerationY, ACCELERATION_BOX_X);
+        canvas.drawRect((-RECT_SIZE / 2) * accelerationX, (-RECT_SIZE / 2) * accelerationY, (RECT_SIZE / 2) * accelerationX, (RECT_SIZE / 2) * accelerationY, ACCELERATION_BOX_X);
         canvas.restore();
     }
 
