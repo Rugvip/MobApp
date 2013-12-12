@@ -13,10 +13,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements FlowerFlexListener, FlowerShrivelListener {
+public class MainActivity extends Activity implements FlowerFlexListener, FlowerShakeListener {
 
     private FlowerFlexSensor ffs = new FlowerFlexSensor(this);
-    private FlowerShrivelSensor fss = new FlowerShrivelSensor(this);
+    private FlowerShakeSensor fss = new FlowerShakeSensor(this);
     private TextView dataOutput;
     private SensorManager mSensorManager;
 
@@ -36,7 +36,7 @@ public class MainActivity extends Activity implements FlowerFlexListener, Flower
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener(ffs, mSensorManager.getDefaultSensor(FlowerFlexSensor.SENSOR_TYPE), SensorManager.SENSOR_DELAY_GAME);
-        mSensorManager.registerListener(fss, mSensorManager.getDefaultSensor(FlowerShrivelSensor.SENSOR_TYPE), SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(fss, mSensorManager.getDefaultSensor(FlowerShakeSensor.SENSOR_TYPE), SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements FlowerFlexListener, Flower
     }
 
     @Override
-    public void onShrivel() {
+    public void onShake() {
         Toast.makeText(this,"Shaked!",Toast.LENGTH_SHORT).show();
     }
 }
