@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import se.kth.oberg.lab3.flower.FlowerActivity;
+import se.kth.oberg.lab3.gl.GLActivity;
 
 public class MainActivity extends Activity {
     @Override
@@ -33,7 +34,7 @@ public class MainActivity extends Activity {
     }
 
     public void glActivity(View view) {
-        startActivity(new Intent(this, GraphSurface.class));
+        startActivity(new Intent(this, GLActivity.class));
     }
 
     public void flowerActivity(View view) {

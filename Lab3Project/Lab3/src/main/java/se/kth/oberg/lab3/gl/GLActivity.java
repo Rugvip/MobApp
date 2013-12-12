@@ -1,4 +1,4 @@
-package se.kth.oberg.lab3;
+package se.kth.oberg.lab3.gl;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -8,7 +8,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 
-public class GraphSurface extends Activity {
+public class GLActivity extends Activity {
     private GLSurfaceView mGLSurfaceView;
 
     @Override
@@ -23,9 +23,9 @@ public class GraphSurface extends Activity {
 
         if (supportsEs2) {
             mGLSurfaceView.setEGLContextClientVersion(2);
-            mGLSurfaceView.setRenderer(new GraphRenderer());
+            mGLSurfaceView.setRenderer(new GLRenderer());
         }else{
-            Log.e("GraphSurface", "Device does not support ES2");
+            Log.e("GLActivty", "Device does not support ES2");
             this.finish();
         }
         setContentView(mGLSurfaceView);

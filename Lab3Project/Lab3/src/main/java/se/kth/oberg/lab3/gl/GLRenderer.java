@@ -1,4 +1,4 @@
-package se.kth.oberg.lab3;
+package se.kth.oberg.lab3.gl;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -12,7 +12,7 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class GraphRenderer implements GLSurfaceView.Renderer {
+public class GLRenderer implements GLSurfaceView.Renderer {
 
     final String vertexShader =
             "uniform mat4 u_MVPMatrix;            \n"
@@ -45,7 +45,7 @@ public class GraphRenderer implements GLSurfaceView.Renderer {
 
     private float[] mViewMatrix = new float[16];
 
-    public GraphRenderer() {
+    public GLRenderer() {
         final float[] triangle1VerticesData = {
                 -0.5f, -0.25f, 0.0f,  // X, Y, Z
                 1.0f, 0.0f, 0.0f, 1.0f, // R, G, B, A
@@ -159,8 +159,6 @@ public class GraphRenderer implements GLSurfaceView.Renderer {
 
     private float[] mModelMatrix = new float[16];
 
-    Asdasd asd = new Asdasd();
-
     @Override
     public void onDrawFrame(GL10 gl10) {
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
@@ -169,7 +167,7 @@ public class GraphRenderer implements GLSurfaceView.Renderer {
 
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
-        Matrix.translateM(mModelMatrix, 0, asd.getX(), asd.getY(), 0);
+        Matrix.translateM(mModelMatrix, 0, 0, 0, 0);
         drawTrinagle(mTriangle1Vertices);
     }
 
