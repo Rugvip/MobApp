@@ -25,6 +25,7 @@ public class GraphActivity extends Activity {
     protected void onResume() {
         super.onResume();
         sensorReader.start();
+        graph.restart();
     }
 
     @Override
