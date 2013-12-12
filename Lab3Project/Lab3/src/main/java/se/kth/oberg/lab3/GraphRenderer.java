@@ -108,12 +108,12 @@ public class GraphRenderer implements GLSurfaceView.Renderer {
             GLES20.glShaderSource(fragmentShaderHandle, fragmentShader);
             GLES20.glCompileShader(fragmentShaderHandle);
             final int[] compileStatus = new int[1];
-            GLES20.glGetShaderiv(fragmentShaderHandle,GLES20.GL_COMPILE_STATUS,compileStatus,0);
+            GLES20.glGetShaderiv(fragmentShaderHandle, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
             if (compileStatus[0] == 0) {
                 GLES20.glDeleteShader(fragmentShaderHandle);
                 fragmentShaderHandle = 0;
             }
-            if (fragmentShaderHandle == 0){
+            if (fragmentShaderHandle == 0) {
                 throw new RuntimeException("Error createing fragmentShader");
             }
         }
@@ -163,13 +163,15 @@ public class GraphRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 gl10) {
-//        GLES20.glClear( GLES20.GL_COLOR_BUFFER_BIT); // GLES20.GL_DEPTH_BUFFER_BIT |
+        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
         long time = SystemClock.uptimeMillis() % 10000L;
         float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
 
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
+        Matrix.translateM(mModelMatrix, 0, asd.getX(), asd.getY(), 0);
         drawTrinagle(mTriangle1Vertices);
+        asd.addX(0.01f);
     }
 
     private float[] mMVPMatrix = new float[16];
