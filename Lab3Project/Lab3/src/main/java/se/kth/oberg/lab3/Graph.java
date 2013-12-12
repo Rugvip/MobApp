@@ -11,7 +11,7 @@ import android.view.SurfaceView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Graph extends SurfaceView implements GraphAccelerationListener {
+public class Graph extends SurfaceView implements SensorReader.SensorReaderListener {
     private SurfaceHolder holder = getHolder();
     private static final int BUFF_SIZE = 500;
     private float[][] graphData = new float[3][BUFF_SIZE];
@@ -60,10 +60,16 @@ public class Graph extends SurfaceView implements GraphAccelerationListener {
     }
 
     @Override
-    public void accelerationHappend(float x, float y, float z) {
-        graphData[0][dataEnd] = x;
-        graphData[1][dataEnd] = y;
-        graphData[2][dataEnd] = z;
+    public void onSensorSwitched() {
+        dataStart = 0;
+        dataEnd = 0;
+    }
+
+    @Override
+    public void onSensorValues(float[] values) {
+        graphData[0][dataEnd] = values[0];
+        graphData[1][dataEnd] = values[1];
+        graphData[2][dataEnd] = values[2];
         dataEnd = (dataEnd + 1) % graphData[0].length;
         if (dataEnd == dataStart) {
             dataStart = (dataStart + 1) % graphData[0].length;
