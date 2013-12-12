@@ -5,7 +5,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.util.Log;
 
-public class FlowerShrivelSensor implements SensorEventListener {
+public class FlowerShakeSensor implements SensorEventListener {
     public static final int SENSOR_TYPE = Sensor.TYPE_LINEAR_ACCELERATION;
 
     private static final int THRESHOLD_MAGNITUDE = 10;
@@ -15,10 +15,10 @@ public class FlowerShrivelSensor implements SensorEventListener {
     private float[] samples = new float[]{0.0f, 0.0f, 0.0f};
     private long startTime;
 
-    private FlowerShrivelListener flowerShrivelListener;
+    private FlowerShakeListener flowerShakeListener;
 
-    public FlowerShrivelSensor(FlowerShrivelListener flowerShrivelListener) {
-        this.flowerShrivelListener = flowerShrivelListener;
+    public FlowerShakeSensor(FlowerShakeListener flowerShakeListener) {
+        this.flowerShakeListener = flowerShakeListener;
     }
 
     @Override
@@ -32,8 +32,8 @@ public class FlowerShrivelSensor implements SensorEventListener {
         if (max > THRESHOLD_MAGNITUDE) {
             if (System.currentTimeMillis() - startTime > THRESHOLD_TIME) {
                 startTime = System.currentTimeMillis();
-                flowerShrivelListener.onShrivel();
-                Log.e("shakeCheck", "shaken");
+                flowerShakeListener.onShake();
+                Log.d("shakeCheck", "shaken");
             }
         } else {
             startTime = System.currentTimeMillis();
@@ -42,6 +42,6 @@ public class FlowerShrivelSensor implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        Log.i("FlowerShrivelSensor", "onAccuracyChanged: " + accuracy);
+        Log.i("FlowerShakeSensor", "onAccuracyChanged: " + accuracy);
     }
 }

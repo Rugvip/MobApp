@@ -1,12 +1,11 @@
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="match_parent"
-android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-<TextView
-    android:id="@+id/textview_output"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content" />
+    <se.kth.oberg.lab3.Flower
+        android:id="@+id/flower"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
@@ -15,7 +14,6 @@ android:layout_height="match_parent">
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:max="180"
-        />
+        android:max="180" />
 
 </RelativeLayout>
