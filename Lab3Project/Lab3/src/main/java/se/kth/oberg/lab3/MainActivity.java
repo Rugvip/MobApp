@@ -66,11 +66,6 @@ public class MainActivity extends Activity implements FlowerFlexListener, Flower
     }
 
     @Override
-    public void onFlex(double angle) {
-        progressBar.setProgress((int) angle + 90);
-    }
-
-    @Override
     public void onShake() {
         flower.exterminate();
         Toast.makeText(this,"Shaked!",Toast.LENGTH_SHORT).show();

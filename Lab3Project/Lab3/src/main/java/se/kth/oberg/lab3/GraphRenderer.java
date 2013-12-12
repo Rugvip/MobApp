@@ -159,14 +159,16 @@ public class GraphRenderer implements GLSurfaceView.Renderer {
 
     private float[] mModelMatrix = new float[16];
 
+    Asdasd asd = new Asdasd();
+
     @Override
     public void onDrawFrame(GL10 gl10) {
-        GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+//        GLES20.glClear( GLES20.GL_COLOR_BUFFER_BIT); // GLES20.GL_DEPTH_BUFFER_BIT |
         long time = SystemClock.uptimeMillis() % 10000L;
         float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
 
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 0.0f, 1.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
         drawTrinagle(mTriangle1Vertices);
     }
 
