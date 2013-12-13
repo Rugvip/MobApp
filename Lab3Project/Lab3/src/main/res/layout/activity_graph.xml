@@ -17,7 +17,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:text="Derka derka"
         android:textColor="@android:color/white"
         android:gravity="bottom|right"
         android:textSize="16sp"
@@ -40,7 +39,6 @@
             android:layout_height="match_parent"
             android:textColor="#FF0000"
             android:gravity="top|right"
-            android:text="9.81"
             android:layout_weight="1"/>
         <TextView
             android:layout_width="0dp"
@@ -56,7 +54,6 @@
             android:layout_height="match_parent"
             android:textColor="#00FF00"
             android:gravity="top|right"
-            android:text="9.81"
             android:layout_weight="1"/>
         <TextView
             android:layout_width="0dp"
@@ -72,7 +69,6 @@
             android:layout_height="match_parent"
             android:textColor="#0000FF"
             android:gravity="top|right"
-            android:text="9.81"
             android:layout_weight="1"/>
         <TextView
             android:layout_width="0dp"

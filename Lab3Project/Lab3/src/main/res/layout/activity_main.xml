@@ -5,22 +5,17 @@
     android:gravity="center">
 
     <Button
-        android:text="boop"
-        android:onClick="glActivity"
-        android:textSize="40sp"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content" />
-
-    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="flowa powa"
+        android:text="Flower"
+        android:textSize="54sp"
         android:onClick="flowerActivity"/>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="beep"
+        android:text="Graph"
+        android:textSize="54sp"
         android:onClick="graphActivity"
         />
 </LinearLayout>

@@ -8,7 +8,6 @@ import android.view.MenuItem;
 import android.view.View;
 
 import se.kth.oberg.lab3.flower.FlowerActivity;
-import se.kth.oberg.lab3.gl.GLActivity;
 import se.kth.oberg.lab3.graph.GraphActivity;
 
 public class MainActivity extends Activity {
@@ -32,10 +31,6 @@ public class MainActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    public void glActivity(View view) {
-        startActivity(new Intent(this, GLActivity.class));
     }
 
     public void flowerActivity(View view) {
