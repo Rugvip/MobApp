@@ -1,33 +1,27 @@
 package se.kth.anderslm.noninsensortest;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Set;
-import java.util.TreeMap;
 
-import android.os.Bundle;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -83,8 +77,7 @@ public class MainActivity extends Activity implements PollCallback {
 		try {
 			pollDataThread.closeSocket();
 			Toast.makeText(this, "Thread interrupted", Toast.LENGTH_SHORT).show();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
 		}
 	}
 
@@ -151,8 +144,6 @@ public class MainActivity extends Activity implements PollCallback {
 			deviceAdapter.updateDevices(temp);
 			deviceList.setAdapter(deviceAdapter);
 		}
-		noninDevice = (BluetoothDevice) deviceList.getSelectedItem();
-		Toast.makeText(this, "Current device: " + noninDevice.getName(), Toast.LENGTH_SHORT).show();
 	}
 
 	void showToast(final CharSequence msg) {
@@ -168,7 +159,7 @@ public class MainActivity extends Activity implements PollCallback {
 	}
 
 	@Override
-	public void resultCallback(final CharSequence results) {
+	public void resultCallback(final String results) {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -178,16 +169,15 @@ public class MainActivity extends Activity implements PollCallback {
 	}
 
 	@Override
-	public void saveDataCallback(CharSequence results) {
-		File file;
+	public void saveDataCallback(String results) {
 		FileOutputStream fos = null;
 		try {
-			file = new File(this.getExternalFilesDir("resultFolder"), "data.txt");
-			fos = new FileOutputStream(file);
-			fos.write(results.toString().getBytes());
+			fos = openFileOutput("data.txt", MODE_WORLD_READABLE ); 
+			fos.write(results.getBytes());
 			fos.close();
+			Log.e("saved","saved: " + results.getBytes());
 		} catch (Exception e) {
-			Log.e("SaveToFile", "Could not save to file!");
+			Log.e("SaveToFile", "Could not save to file!\n" + e.getMessage());
 			try {
 				fos.close();
 			} catch (IOException e1) {
@@ -200,8 +190,7 @@ public class MainActivity extends Activity implements PollCallback {
 		try {
 			pollDataThread.closeSocket();
 			Toast.makeText(this, "Thread interrupted", Toast.LENGTH_SHORT).show();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
 		}
 	}
 
@@ -211,11 +200,13 @@ public class MainActivity extends Activity implements PollCallback {
 			@Override
 			public void run() {
 				try {
+					Log.e("sendDataButton","Sending data");
 					FileInputStream in = openFileInput("data.txt");
-					Socket sock = new Socket("130.229.184.54", 6667);
+					Socket sock = new Socket("130.229.184.54",6667);
 					int val;
 					while ((val = in.read()) >= 0) {
 						sock.getOutputStream().write(val);
+						Log.e("asd","asd: " + val);
 					}
 					sock.close();
 				} catch (UnknownHostException e) {
