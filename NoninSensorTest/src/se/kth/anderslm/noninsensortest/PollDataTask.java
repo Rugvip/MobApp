@@ -57,21 +57,19 @@ class PollDataTask extends Thread {
 				Log.e("PollDataTask", "Ack ACKccepted");
 				byte[] frame = new byte[FRAME_SIZE];
 				while (!isInterrupted()) {
-					output = "";
-					is.read(frame);
-					int pleth = unsignedByteToInt(frame[2]) & 0x7F;
+					readByte(is, frame);
+					int pleth = frame[2] & 0x7F;
 					if ((frame[1] & 1) != 0) {
-						int PR_MSB = unsignedByteToInt(frame[3]) & 3;
-						is.read(frame);
-						int PR_LSB = unsignedByteToInt(frame[3]) & 0x7F;
-						is.read(frame);
-						int SP_O2 = unsignedByteToInt(frame[3]) & 0x7F;
+						int PR_MSB = frame[3] & 3;
+						readByte(is, frame);
+						int PR_LSB = frame[3] & 0x7F;
+						readByte(is, frame);
+						int SP_O2 = frame[3] & 0x7F;
 
 						Log.e("PollDataTask", "Datas: " + PR_MSB + " " + PR_LSB);
 						output = ((PR_MSB << 7) + PR_LSB) + ":" + SP_O2;
 						callback.resultCallback(output);
 					}
-					callback.saveDataCallback(pleth + ":" + output + "\r\n");
 				}
 			}
 		} catch (Exception e) {
@@ -85,12 +83,18 @@ class PollDataTask extends Thread {
 			}
 		}
 	}
+	
+	private void readByte(InputStream is, byte frame[]) throws IOException {
+		is.read(frame);
+		int pleth = unsignedByteToInt(frame[2]);
+		callback.saveDataCallback(pleth);
+	}
 
 	public void closeSocket() throws IOException {
 		socket.close();
 	}
 
-	private int unsignedByteToInt(byte b) {
+	private static int unsignedByteToInt(byte b) {
 		return (int) b & 0xFF;
 	}
 }

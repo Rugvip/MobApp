@@ -1,14 +1,10 @@
 package se.kth.anderslm.noninsensortest;
 
-import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -16,6 +12,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -46,6 +43,7 @@ public class MainActivity extends Activity implements PollCallback {
 	};
 
 	private TextView dataView;
+	private Graph graph;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +51,7 @@ public class MainActivity extends Activity implements PollCallback {
 		setContentView(R.layout.activity_main);
 
 		dataView = (TextView) findViewById(R.id.dataView);
+		graph = (Graph) findViewById(R.id.graph);
 
 		deviceList = (ListView) findViewById(R.id.deviceList);
 		deviceList.setOnItemClickListener(listClick);
@@ -75,6 +74,7 @@ public class MainActivity extends Activity implements PollCallback {
 	protected void onPause() {
 		super.onPause();
 		try {
+			closeFile();
 			pollDataThread.closeSocket();
 			Toast.makeText(this, "Thread interrupted", Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
@@ -90,6 +90,7 @@ public class MainActivity extends Activity implements PollCallback {
 	public void onPollButtonClicked(View view) {
 		if (noninDevice != null) {
 			Log.e("onPollbuttoncicked", "About to start thread");
+			openFile();
 			pollDataThread = new PollDataTask(this, noninDevice);
 			pollDataThread.start();
 			Log.e("Thread", pollDataThread.toString());
@@ -168,26 +169,39 @@ public class MainActivity extends Activity implements PollCallback {
 		});
 	}
 
-	@Override
-	public void saveDataCallback(String results) {
-		FileOutputStream fos = null;
+	private FileOutputStream fos = null;
+	
+	private void openFile() {
 		try {
-			fos = openFileOutput("data.txt", MODE_WORLD_READABLE ); 
-			fos.write(results.getBytes());
+			fos = openFileOutput("data.txt", MODE_WORLD_READABLE);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} 
+	}
+	
+	private void closeFile() {
+		try {
 			fos.close();
-			Log.e("saved","saved: " + results.getBytes());
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void saveDataCallback(int data) {
+		try {
+			graph.addValue(data);
+			assert fos != null;
+			fos.write(("" + data + "\r\n").getBytes());
+			Log.e("saved","saved: " + data);
 		} catch (Exception e) {
 			Log.e("SaveToFile", "Could not save to file!\n" + e.getMessage());
-			try {
-				fos.close();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
 		}
 	}
 
 	public void abortButton(View view) {
 		try {
+			closeFile();
 			pollDataThread.closeSocket();
 			Toast.makeText(this, "Thread interrupted", Toast.LENGTH_SHORT).show();
 		} catch (Exception e) {
@@ -196,25 +210,28 @@ public class MainActivity extends Activity implements PollCallback {
 
 	public void sendDataButton(View view) {
 		Toast.makeText(this, "Send ze datas!", Toast.LENGTH_SHORT).show();
-		new Thread(new Runnable() {
+		new AsyncTask<Void,Void,Void>() {
 			@Override
-			public void run() {
+			public Void doInBackground(Void...voids) {
 				try {
 					Log.e("sendDataButton","Sending data");
 					FileInputStream in = openFileInput("data.txt");
-					Socket sock = new Socket("130.229.184.54",6667);
+					Log.e("Open", "File");
+					Socket sock = new Socket("130.237.84.12",6667);
 					int val;
+					Log.e("EEEE", "EEE");
+					Log.e("Val", "" + in.read());
+					Log.e("len", "" + in.available());
 					while ((val = in.read()) >= 0) {
-						sock.getOutputStream().write(val);
 						Log.e("asd","asd: " + val);
+						sock.getOutputStream().write(val);
 					}
 					sock.close();
-				} catch (UnknownHostException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
+				} catch (Exception e) {
+					Log.e("Error", "" + e.getMessage());
 				}
+				return null;
 			}
-		}).start();
+		}.execute();
 	}
 }
