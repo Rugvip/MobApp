@@ -1,5 +1,6 @@
 package se.kth.anderslm.noninsensortest;
 
 public interface PollCallback {
-	public void displayResults(CharSequence results);
+	public void resultCallback(CharSequence results);
+	public void saveDataCallback(CharSequence results);
 }

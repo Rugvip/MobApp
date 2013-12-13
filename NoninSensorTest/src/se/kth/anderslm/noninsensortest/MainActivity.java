@@ -1,7 +1,21 @@
 package se.kth.anderslm.noninsensortest;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Set;
+import java.util.TreeMap;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -33,6 +47,7 @@ public class MainActivity extends Activity implements PollCallback {
 		public void onItemClick(AdapterView<?> adapterView, View view, int i,
 				long l) {
 			noninDevice = (BluetoothDevice) deviceAdapter.getItem(i);
+			Toast.makeText(MainActivity.this, "Current device: " + noninDevice.getName(), Toast.LENGTH_SHORT).show();
 		}
 	};
 
@@ -66,8 +81,10 @@ public class MainActivity extends Activity implements PollCallback {
 	protected void onPause() {
 		super.onPause();
 		try {
-			pollDataThread.interrupt();
-		} catch (Exception e) {
+			pollDataThread.closeSocket();
+			Toast.makeText(this, "Thread interrupted", Toast.LENGTH_SHORT).show();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -82,6 +99,7 @@ public class MainActivity extends Activity implements PollCallback {
 			Log.e("onPollbuttoncicked", "About to start thread");
 			pollDataThread = new PollDataTask(this, noninDevice);
 			pollDataThread.start();
+			Log.e("Thread", pollDataThread.toString());
 		} else {
 			showToast("No Nonin sensor found");
 		}
@@ -134,6 +152,7 @@ public class MainActivity extends Activity implements PollCallback {
 			deviceList.setAdapter(deviceAdapter);
 		}
 		noninDevice = (BluetoothDevice) deviceList.getSelectedItem();
+		Toast.makeText(this, "Current device: " + noninDevice.getName(), Toast.LENGTH_SHORT).show();
 	}
 
 	void showToast(final CharSequence msg) {
@@ -149,13 +168,62 @@ public class MainActivity extends Activity implements PollCallback {
 	}
 
 	@Override
-	public void displayResults(final CharSequence results) {
-		// Log.e("displayResults", "Callback! " + results);
+	public void resultCallback(final CharSequence results) {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				dataView.setText(results);
 			}
 		});
+	}
+
+	@Override
+	public void saveDataCallback(CharSequence results) {
+		File file;
+		FileOutputStream fos = null;
+		try {
+			file = new File(this.getExternalFilesDir("resultFolder"), "data.txt");
+			fos = new FileOutputStream(file);
+			fos.write(results.toString().getBytes());
+			fos.close();
+		} catch (Exception e) {
+			Log.e("SaveToFile", "Could not save to file!");
+			try {
+				fos.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+
+	public void abortButton(View view) {
+		try {
+			pollDataThread.closeSocket();
+			Toast.makeText(this, "Thread interrupted", Toast.LENGTH_SHORT).show();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void sendDataButton(View view) {
+		Toast.makeText(this, "Send ze datas!", Toast.LENGTH_SHORT).show();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					FileInputStream in = openFileInput("data.txt");
+					Socket sock = new Socket("130.229.184.54", 6667);
+					int val;
+					while ((val = in.read()) >= 0) {
+						sock.getOutputStream().write(val);
+					}
+					sock.close();
+				} catch (UnknownHostException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
 	}
 }
