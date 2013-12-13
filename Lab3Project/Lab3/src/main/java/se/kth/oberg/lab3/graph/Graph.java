@@ -15,6 +15,8 @@ public class Graph extends SurfaceView implements SensorReader.SensorReaderListe
     private static final int MAX_COUNT = 100;
     private static final int BUFF_SIZE = MAX_COUNT + 1;
     private static final float MAX_SENSOR_VALUE = 50;
+    private static final int NR_OF_POSITIVE_GRIDS = 3;
+
     private float[][] graphData = new float[3][BUFF_SIZE];
     private int count = 0;
     private int offset = 0;
@@ -23,19 +25,26 @@ public class Graph extends SurfaceView implements SensorReader.SensorReaderListe
     private Paint Y_GRAPH = new Paint();
     private Paint Z_GRAPH = new Paint();
 
+    private Paint GRIDLINE = new Paint();
+    private Paint GRID_VALUE = new Paint();
+
+
     List<Paint> paints = new ArrayList<Paint>();
 
     public Graph(Context context, AttributeSet attrs) {
         super(context, attrs);
-        X_GRAPH.setColor(0xFF0000FF);
-        Y_GRAPH.setColor(0xFFFF0000);
-        Z_GRAPH.setColor(0xFF00FF00);
+        X_GRAPH.setColor(0xFF_0000FF);
+        Y_GRAPH.setColor(0xFF_FF0000);
+        Z_GRAPH.setColor(0xFF_00FF00);
         paints.add(X_GRAPH);
         paints.add(Y_GRAPH);
         paints.add(Z_GRAPH);
         for (Paint paint : paints) {
             paint.setStrokeWidth(2.0f);
         }
+        GRIDLINE.setColor(0x7F_FFFFFF);
+        GRIDLINE.setStrokeWidth(1.0f);
+        GRID_VALUE.setColor(0xFF_FFFFFF);
     }
 
     @Override
@@ -43,11 +52,16 @@ public class Graph extends SurfaceView implements SensorReader.SensorReaderListe
         canvas.drawColor(0xFF000000);
         float width = canvas.getWidth();
         float widthPerBuffs = width / MAX_COUNT;
-        float graphScale = (canvas.getHeight() / 2.0f) / MAX_SENSOR_VALUE;
+
+        float graphScale = ((canvas.getHeight() / (NR_OF_POSITIVE_GRIDS*2+1) / 9.81f));
 
         canvas.translate(width, canvas.getHeight() / 2);
-
         canvas.save();
+
+        for (int i = -NR_OF_POSITIVE_GRIDS - 1; i < NR_OF_POSITIVE_GRIDS + 1; i++) {
+            canvas.drawLine(-width, i * 9.81f * graphScale, 0, i * 9.81f * graphScale, GRIDLINE);
+        }
+
         for (int j = 0; j < paints.size(); ++j) {
             float data[] = graphData[j];
             for (int i = 0; i < count - 1; ++i) {
