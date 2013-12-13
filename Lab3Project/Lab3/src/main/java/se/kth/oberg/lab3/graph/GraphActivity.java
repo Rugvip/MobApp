@@ -19,6 +19,7 @@ public class GraphActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graph);
         graph = (Graph) findViewById(R.id.graph);
+        graph.findViews(this);
         sensorReader = new SensorReader(this);
         sensorReader.setListener(graph);
     }

@@ -1,74 +1,89 @@
 package se.kth.oberg.lab3.graph;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.TextView;
+import se.kth.oberg.lab3.R;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DecimalFormat;
 
 public class Graph extends SurfaceView implements SensorReader.SensorReaderListener {
-    private SurfaceHolder holder = getHolder();
     private static final int MAX_COUNT = 100;
     private static final int BUFF_SIZE = MAX_COUNT + 1;
-    private static final float MAX_SENSOR_VALUE = 50;
-    private static final int NR_OF_POSITIVE_GRIDS = 3;
+    private static final int STEP_COUNT = 3;
 
+    private static Paint PAINT_GRAPH[] = new Paint[] {new Paint(), new Paint(), new Paint()};
+    static {
+        PAINT_GRAPH[0].setColor(0xFF_FF0000);
+        PAINT_GRAPH[1].setColor(0xFF_00FF00);
+        PAINT_GRAPH[2].setColor(0xFF_0000FF);
+        for (Paint paint : PAINT_GRAPH) {
+            paint.setStrokeWidth(2.0f);
+        }
+    }
+
+    private static Paint PAINT_GRID = new Paint();
+    private static Paint PAINT_TEXT = new Paint();
+    static {
+        PAINT_GRID.setColor(0x7F_FFFFFF);
+        PAINT_GRID.setStrokeWidth(1.0f);
+        PAINT_TEXT.setColor(0xFF_FFFFFF);
+        PAINT_TEXT.setTextSize(32.0f);
+        PAINT_TEXT.setTextAlign(Paint.Align.CENTER);
+    }
+
+    private SurfaceHolder holder = getHolder();
     private float[][] graphData = new float[3][BUFF_SIZE];
     private int count = 0;
     private int offset = 0;
+    private float step = 1;
+    private DecimalFormat format = null;
 
-    private Paint X_GRAPH = new Paint();
-    private Paint Y_GRAPH = new Paint();
-    private Paint Z_GRAPH = new Paint();
-
-    private Paint GRIDLINE = new Paint();
-    private Paint GRID_VALUE = new Paint();
-
-
-    List<Paint> paints = new ArrayList<Paint>();
+    private TextView descriptionText;
+    private TextView xText;
+    private TextView yText;
+    private TextView zText;
 
     public Graph(Context context, AttributeSet attrs) {
         super(context, attrs);
-        X_GRAPH.setColor(0xFF_0000FF);
-        Y_GRAPH.setColor(0xFF_FF0000);
-        Z_GRAPH.setColor(0xFF_00FF00);
-        paints.add(X_GRAPH);
-        paints.add(Y_GRAPH);
-        paints.add(Z_GRAPH);
-        for (Paint paint : paints) {
-            paint.setStrokeWidth(2.0f);
-        }
-        GRIDLINE.setColor(0x7F_FFFFFF);
-        GRIDLINE.setStrokeWidth(1.0f);
-        GRID_VALUE.setColor(0xFF_FFFFFF);
+    }
+
+    public void findViews(Activity activity) {
+        descriptionText = (TextView) activity.findViewById(R.id.description);
+        xText = (TextView) activity.findViewById(R.id.x);
+        yText = (TextView) activity.findViewById(R.id.y);
+        zText = (TextView) activity.findViewById(R.id.z);
     }
 
     @Override
     public void draw(Canvas canvas) {
-        canvas.drawColor(0xFF000000);
-        float width = canvas.getWidth();
+        canvas.drawColor(0xFF_000000);
+        float width = canvas.getWidth() * 9 / 10.0f;
         float widthPerBuffs = width / MAX_COUNT;
 
-        float graphScale = ((canvas.getHeight() / (NR_OF_POSITIVE_GRIDS*2+1) / 9.81f));
+        float graphScale = ((canvas.getHeight() / (STEP_COUNT * 2 + 1) / step));
 
-        canvas.translate(width, canvas.getHeight() / 2);
+        canvas.translate(canvas.getWidth(), canvas.getHeight() / 2);
         canvas.save();
 
-        for (int i = -NR_OF_POSITIVE_GRIDS - 1; i < NR_OF_POSITIVE_GRIDS + 1; i++) {
-            canvas.drawLine(-width, i * 9.81f * graphScale, 0, i * 9.81f * graphScale, GRIDLINE);
+        for (int i = -STEP_COUNT - 1; i < STEP_COUNT + 1; i++) {
+            canvas.drawText("" + i, -width - 20.0f, i * step * graphScale + 12.0f, PAINT_TEXT);
+            canvas.drawLine(-width, i * step * graphScale, 0, i * step * graphScale, PAINT_GRID);
         }
 
-        for (int j = 0; j < paints.size(); ++j) {
+        for (int j = 0; j < PAINT_GRAPH.length; ++j) {
             float data[] = graphData[j];
             for (int i = 0; i < count - 1; ++i) {
                 canvas.drawLine(
                         -widthPerBuffs * i, data[wrap(offset - i)] * graphScale,
                         -widthPerBuffs * (i + 1), data[wrap(offset - i - 1)] * graphScale,
-                        paints.get(j));
+                        PAINT_GRAPH[j]);
             }
         }
         canvas.restore();
@@ -77,11 +92,6 @@ public class Graph extends SurfaceView implements SensorReader.SensorReaderListe
     public void restart() {
         count = 0;
         offset = 0;
-    }
-
-    @Override
-    public void onSensorSwitched() {
-        restart();
     }
 
     public int wrap(int i) {
@@ -93,11 +103,23 @@ public class Graph extends SurfaceView implements SensorReader.SensorReaderListe
     }
 
     @Override
+    public void onSensorSwitched(String description, float step, DecimalFormat format) {
+        this.step = step;
+        this.format = format;
+        descriptionText.setText(description);
+        restart();
+    }
+
+    @Override
     public void onSensorValues(float[] values) {
         ++offset;
         if (count < MAX_COUNT) {
             ++count;
         }
+
+        xText.setText("" + format.format(values[0]));
+        yText.setText("" + format.format(values[1]));
+        zText.setText("" + format.format(values[2]));
 
         int i = wrap(offset);
         graphData[0][i] = values[0];
