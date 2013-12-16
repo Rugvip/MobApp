@@ -13,6 +13,10 @@ import se.kth.oberg.lab3.R;
 
 import java.text.DecimalFormat;
 
+/**
+ *  class for drawing a graph.
+ */
+
 public class Graph extends SurfaceView implements SensorReader.SensorReaderListener {
     private static final int MAX_COUNT = 100;
     private static final int BUFF_SIZE = MAX_COUNT + 1;
@@ -61,6 +65,10 @@ public class Graph extends SurfaceView implements SensorReader.SensorReaderListe
         zText = (TextView) activity.findViewById(R.id.z);
     }
 
+    /**
+     * method for drawing a graph
+     * @param canvas
+     */
     @Override
     public void draw(Canvas canvas) {
         canvas.drawColor(0xFF_000000);
@@ -94,6 +102,11 @@ public class Graph extends SurfaceView implements SensorReader.SensorReaderListe
         offset = 0;
     }
 
+    /**
+     * wraps the value to the buffer size.
+     * @param i
+     * @return
+     */
     public int wrap(int i) {
         i %= BUFF_SIZE;
         if (i < 0) {

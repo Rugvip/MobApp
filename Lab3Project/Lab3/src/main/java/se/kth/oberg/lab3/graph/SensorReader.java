@@ -12,6 +12,9 @@ import android.util.Log;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 
+/**
+ * Class for listening to the sensors for graph activity
+ */
 public class SensorReader implements SensorEventListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String SENSOR_SETTING_KEY = "sensor";
     private static final int SENSOR_DELAY = SensorManager.SENSOR_DELAY_UI;
@@ -22,6 +25,10 @@ public class SensorReader implements SensorEventListener, SharedPreferences.OnSh
     private int sensorType;
     private boolean running = false;
 
+    /**
+     * based on sharedPreference, sets the current sensor type.
+     * @param context
+     */
     public SensorReader(Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -29,6 +36,11 @@ public class SensorReader implements SensorEventListener, SharedPreferences.OnSh
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
 
+    /**
+     * Converts the preference value to a sensor type
+     * @param value
+     * @return
+     */
     private int stringToSensorType(String value) {
         switch (value) {
             case "acc":
@@ -53,6 +65,10 @@ public class SensorReader implements SensorEventListener, SharedPreferences.OnSh
         return "null";
     }
 
+    /**
+     * get unit for selected sensor, e.g G-force
+     * @return
+     */
     public float getStep() {
         switch (sensorType) {
             case Sensor.TYPE_GYROSCOPE:
@@ -65,6 +81,10 @@ public class SensorReader implements SensorEventListener, SharedPreferences.OnSh
         return 1;
     }
 
+    /**
+     * get the format in decimal-form
+     * @return
+     */
     public DecimalFormat getFormat() {
         switch (sensorType) {
             case Sensor.TYPE_GYROSCOPE:
@@ -128,6 +148,9 @@ public class SensorReader implements SensorEventListener, SharedPreferences.OnSh
         }
     }
 
+    /**
+     * Interface between Graph and Sensor
+     */
     public interface SensorReaderListener {
         public void onSensorSwitched(String description, float step, DecimalFormat format);
         public void onSensorValues(float values[]);

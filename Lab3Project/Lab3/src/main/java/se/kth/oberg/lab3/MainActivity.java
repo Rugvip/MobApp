@@ -10,6 +10,9 @@ import android.view.View;
 import se.kth.oberg.lab3.flower.FlowerActivity;
 import se.kth.oberg.lab3.graph.GraphActivity;
 
+/**
+ * Main activity holding buttons to get to the activitys.
+ */
 public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {

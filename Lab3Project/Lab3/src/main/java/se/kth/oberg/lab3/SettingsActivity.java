@@ -9,6 +9,9 @@ import android.preference.PreferenceManager;
 
 import java.util.Map;
 
+/**
+ * Settings for the graph
+ */
 public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +26,11 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
         }
     }
 
+    /**
+     *  Updates the "Currently selected" item under the name of setting.
+     * @param key
+     * @param value
+     */
     private void updateSummary(String key, String value) {
         Preference preference = findPreference(key);
         if (preference instanceof ListPreference) {
